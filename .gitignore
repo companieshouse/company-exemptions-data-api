@@ -21,3 +21,21 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+target/
+.classpath
+.project
+.settings/
+.vscode/
+.factorypath
+
+#Intellij
+.idea
+*.iml
+*.iws
+*.ipr
+.mvn/
+
+# VS Code
+settings.json
+
+company-exemptions-data-api.jar
