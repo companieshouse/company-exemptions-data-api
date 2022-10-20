@@ -3,3 +3,4 @@ group: api
 weight: 999998
 routes:
   1: ^/company-exemptions/(.*)/internal
+  2: ^/company-exemptions/healthcheck
