@@ -7,8 +7,6 @@ import uk.gov.companieshouse.logging.Logger;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ExemptionsService {
@@ -29,7 +27,26 @@ public class ExemptionsService {
 
         if (isLatestRecord(companyNumber, requestBody.getInternalData().getDeltaAt())) {
             CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
-            saveAndCallChsKafka(contextId, companyNumber, document);
+
+            // If the document to be updated already has created_at then reuse it
+            // otherwise, set it to the delta's updated_at field
+            repository.findById(companyNumber).map(CompanyExemptionsDocument::getCreated)
+                    .ifPresentOrElse((document::setCreated),
+                            () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
+
+            try {
+                repository.save(document);
+                logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
+                        companyNumber,
+                        contextId));
+                exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+                logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
+                        contextId,
+                        companyNumber));
+            } catch (IllegalArgumentException illegalArgumentEx) {
+                throw new BadRequestException(illegalArgumentEx.getMessage());
+            }
+
             return ServiceStatus.SUCCESS;
         } else {
             logger.info("Company exemptions record not persisted as it is not the latest record.");
@@ -38,44 +55,7 @@ public class ExemptionsService {
     }
 
     private boolean isLatestRecord(String officerId, OffsetDateTime deltaAt) {
-        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        String formattedDate = deltaAt.format(dateTimeFormatter);
-
+        String formattedDate = deltaAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
         return repository.findUpdatedExemptions(officerId, formattedDate).isEmpty();
-    }
-
-    private void saveAndCallChsKafka(String contextId, String companyNumber,
-                                     CompanyExemptionsDocument document) {
-        boolean savedToDb = false;
-        Created created = getCreatedFromCurrentRecord(companyNumber);
-        if(created == null) {
-            document.setCreated(new Created().setAt(document.getUpdated().getAt()));
-        } else {
-            document.setCreated(created);
-        }
-
-        try {
-            repository.save(document);
-            savedToDb = true;
-            logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
-                    companyNumber,
-                    contextId));
-        } catch (IllegalArgumentException illegalArgumentEx) {
-            throw new BadRequestException(illegalArgumentEx.getMessage());
-        }
-
-        if (savedToDb) {
-            exemptionsApiService.invokeChsKafkaApi(
-                    new ResourceChangedRequest(contextId, companyNumber, null, false));
-            logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
-                    contextId,
-                    companyNumber));
-        }
-    }
-
-    private Created getCreatedFromCurrentRecord(String companyNumber) {
-        Optional<CompanyExemptionsDocument> doc = repository.findById(companyNumber);
-
-        return doc.isPresent() ? doc.get().getCreated(): null;
     }
 }
