@@ -42,12 +42,13 @@ class ExemptionsControllerTest {
     @MockBean
     private ExemptionsService exemptionsService;
 
-    private ObjectMapper mapper = new ObjectMapper();
+
 
     private Gson gson = new Gson();
 
     @BeforeEach
     void setUp() {
+        ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
