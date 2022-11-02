@@ -22,15 +22,21 @@ public class ExemptionsController {
 
     @PutMapping("/company-exemptions/{company_number}/internal")
     public ResponseEntity<Void> companyExemptionsUpsert(
-            @RequestHeader("x-request-header") String contextId,
+            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
-            @RequestBody InternalExemptionsApi requestBody) throws JsonProcessingException {
+            @RequestBody InternalExemptionsApi requestBody) {
         logger.info(String.format(
                 "Processing company exemptions information for company number %s",
                 companyNumber));
 
-        service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
 
-        return ResponseEntity.ok().build();
+        if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
+            return ResponseEntity.internalServerError().build();
+        } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok().build();
+        }
     }
 }

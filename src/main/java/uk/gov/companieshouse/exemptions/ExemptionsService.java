@@ -10,7 +10,7 @@ public class ExemptionsService {
 
     // private final CompanyExemptionsRepository repository;
 
-    public void upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
-
+    public ServiceStatus upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
+        return null;
     }
 }

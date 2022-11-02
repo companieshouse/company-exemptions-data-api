@@ -10,11 +10,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.companieshouse.logging.Logger;
 
-public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
+public class AuthenticationFilter extends OncePerRequestFilter {
 
     private final Logger logger;
 
-    public EricTokenAuthenticationFilter(Logger logger) {
+    public AuthenticationFilter(Logger logger) {
         this.logger = logger;
     }
 
@@ -25,8 +25,8 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
         String ericId = request.getHeader("ERIC-Identity");
 
         if (StringUtils.isBlank(ericId)) {
-            logger.error("Unauthorised request received without eric identity");
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            logger.error("Unauthenticated request received without eric identity");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
@@ -34,8 +34,8 @@ public class EricTokenAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.isBlank(ericIdType) ||
                 ! (ericIdType.equalsIgnoreCase("key") || ericIdType.equalsIgnoreCase("oauth2"))) {
-            logger.error("Unauthorised request received without eric identity type");
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            logger.error("Unauthenticated request received without eric identity type");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 

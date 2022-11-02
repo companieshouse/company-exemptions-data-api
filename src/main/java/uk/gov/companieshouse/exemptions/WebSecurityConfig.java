@@ -31,8 +31,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilterAt(new EricTokenAuthenticationFilter(logger),
-                        BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthenticationFilter(logger), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthorisationFilter(logger), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .anyRequest().permitAll();
     }
