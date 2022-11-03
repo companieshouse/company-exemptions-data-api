@@ -39,15 +39,15 @@ public class ExemptionsService {
                 logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
                         companyNumber,
                         contextId));
-                exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+                ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
                 logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
                         contextId,
                         companyNumber));
-            } catch (IllegalArgumentException illegalArgumentEx) {
-                throw new BadRequestException(illegalArgumentEx.getMessage());
+                return serviceStatus;
+            } catch (IllegalArgumentException exp) {
+                logger.error("Illegal argument exception caught when saving to repository", exp);
+                return ServiceStatus.SERVER_ERROR;
             }
-
-            return ServiceStatus.SUCCESS;
         } else {
             logger.info("Company exemptions record not persisted as it is not the latest record.");
             return ServiceStatus.CLIENT_ERROR;

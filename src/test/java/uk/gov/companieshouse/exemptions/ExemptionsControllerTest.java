@@ -42,8 +42,6 @@ class ExemptionsControllerTest {
     @MockBean
     private ExemptionsService exemptionsService;
 
-
-
     private Gson gson = new Gson();
 
     @BeforeEach
@@ -95,7 +93,7 @@ class ExemptionsControllerTest {
                 .header("ERIC-Identity-Type", "Key")
                 .header("ERIC-Authorised-Key-Privileges", "*")
                 .content(gson.toJson(getRequestBody())))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isConflict());
     }
 
     private InternalExemptionsApi getRequestBody() {

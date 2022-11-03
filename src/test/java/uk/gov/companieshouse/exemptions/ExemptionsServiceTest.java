@@ -72,14 +72,15 @@ class ExemptionsServiceTest {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.emptyList());
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
 
-        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        verify(repository).save(document);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER,
-                 null, false));
+        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
         assertEquals(dateString, dateCaptor.getValue());
         assertNotNull(document.getCreated().getAt());
+        verify(repository).save(document);
+        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
     }
 
     @Test
@@ -89,14 +90,15 @@ class ExemptionsServiceTest {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.emptyList());
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(document));
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
 
-        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        verify(repository).save(document);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER,
-                null, false));
+        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
         assertEquals(dateString, dateCaptor.getValue());
         assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), document.getCreated().getAt());
+        verify(repository).save(document);
+        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
     }
 
     @Test
@@ -104,11 +106,29 @@ class ExemptionsServiceTest {
     void outOfDateDelta() {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.singletonList(new CompanyExemptionsDocument()));
 
-        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
+        assertEquals(ServiceStatus.CLIENT_ERROR, serviceStatus);
+        assertEquals(dateString, dateCaptor.getValue());
         verify(repository).findUpdatedExemptions(COMPANY_NUMBER, dateString);
         verifyNoMoreInteractions(repository);
         verifyNoInteractions(exemptionsApiService);
+    }
+
+    @Test
+    @DisplayName("Test should return status server error when save to repository throws illegal arg exception")
+    void saveToRepositoryError() {
+        when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.emptyList());
+        when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(repository.save(document)).thenThrow(IllegalArgumentException.class);
+
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+
+        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
         assertEquals(dateString, dateCaptor.getValue());
+        verify(repository).findUpdatedExemptions(COMPANY_NUMBER, dateString);
+        verify(repository).save(document);
+        verifyNoInteractions(exemptionsApiService);
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
-import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service
@@ -34,10 +33,10 @@ public class ExemptionsApiService {
 
     /**
      * Calls the CHS Kafka api.
-     * @param resourceChangedRequest encapsulates details relating to the updated or deleted officer
-     * @return the response from the kafka api
+     * @param resourceChangedRequest encapsulates details relating to the updated or deleted company exemption
+     * @return The service status of the response from chs kafka api
      */
-    public ApiResponse<Void> invokeChsKafkaApi(ResourceChangedRequest resourceChangedRequest) {
+    public ServiceStatus invokeChsKafkaApi(ResourceChangedRequest resourceChangedRequest) {
         InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
         internalApiClient.setBasePath(chsKafkaUrl);
 
@@ -48,18 +47,17 @@ public class ExemptionsApiService {
         return handleApiCall(changedResourcePost);
     }
 
-    private ApiResponse<Void> handleApiCall(PrivateChangedResourcePost changedResourcePost) {
+    private ServiceStatus handleApiCall(PrivateChangedResourcePost changedResourcePost) {
         try {
-            return changedResourcePost.execute();
+            changedResourcePost.execute();
+            return ServiceStatus.SUCCESS;
         } catch (ApiErrorResponseException exp) {
-            HttpStatus statusCode = HttpStatus.valueOf(exp.getStatusCode());
-            if (!statusCode.is2xxSuccessful()) {
+            if (!HttpStatus.valueOf(exp.getStatusCode()).is2xxSuccessful()) {
                 logger.error("Unsuccessful call to /resource-changed endpoint", exp);
-                throw new ServiceUnavailableException(exp.getMessage());
             } else {
                 logger.error("Error occurred while calling /resource-changed endpoint", exp);
-                throw new RuntimeException(exp);
             }
+            return ServiceStatus.SERVER_ERROR;
         }
     }
 }

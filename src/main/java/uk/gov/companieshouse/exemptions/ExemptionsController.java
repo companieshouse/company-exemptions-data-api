@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.exemptions;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,7 +34,7 @@ public class ExemptionsController {
         if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
             return ResponseEntity.internalServerError().build();
         } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
             return ResponseEntity.ok().build();
         }

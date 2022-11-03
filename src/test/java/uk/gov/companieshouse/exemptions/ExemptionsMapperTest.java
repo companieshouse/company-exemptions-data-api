@@ -34,7 +34,7 @@ import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulat
 import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
 import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
 
-public class ExemptionsMapperTest {
+class ExemptionsMapperTest {
 
     private static final String COMPANY_NUMBER = "123456789";
     private static final LocalDate DATE = LocalDate.of(2022, 11, 3);
