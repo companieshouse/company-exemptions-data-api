@@ -2,6 +2,7 @@ package uk.gov.companieshouse.exemptions;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.model.exemptions.CompanyExemptionsApi;
 
 import javax.persistence.Id;
@@ -14,7 +15,7 @@ public class CompanyExemptionsDocument {
 
     private Created created;
 
-    private CompanyExemptionsApi data;
+    private CompanyExemptions data;
 
     @Field("delta_at")
     private String deltaAt;
@@ -39,11 +40,11 @@ public class CompanyExemptionsDocument {
         return this;
     }
 
-    public CompanyExemptionsApi getData() {
+    public CompanyExemptions getData() {
         return data;
     }
 
-    public CompanyExemptionsDocument setData(CompanyExemptionsApi data) {
+    public CompanyExemptionsDocument setData(CompanyExemptions data) {
         this.data = data;
         return this;
     }

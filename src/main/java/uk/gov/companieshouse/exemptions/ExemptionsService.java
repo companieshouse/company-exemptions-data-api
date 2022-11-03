@@ -54,8 +54,8 @@ public class ExemptionsService {
         }
     }
 
-    private boolean isLatestRecord(String officerId, OffsetDateTime deltaAt) {
+    private boolean isLatestRecord(String companyNumber, OffsetDateTime deltaAt) {
         String formattedDate = deltaAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
-        return repository.findUpdatedExemptions(officerId, formattedDate).isEmpty();
+        return repository.findUpdatedExemptions(companyNumber, formattedDate).isEmpty();
     }
 }

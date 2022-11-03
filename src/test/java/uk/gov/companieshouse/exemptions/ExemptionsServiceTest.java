@@ -100,14 +100,15 @@ class ExemptionsServiceTest {
     }
 
     @Test
-    void processNaturalDisqualificationDoesNotSavesDisqualificationWhenUpdateAlreadyMade() {
+    @DisplayName("Test should not update exemptions record from out of date delta")
+    void outOfDateDelta() {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.singletonList(new CompanyExemptionsDocument()));
 
         service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        verify(repository, times(0)).save(document);
-        verify(exemptionsApiService, times(0))
-                .invokeChsKafkaApi(new ResourceChangedRequest("", "officerId", null, false));
+        verify(repository).findUpdatedExemptions(COMPANY_NUMBER, dateString);
+        verifyNoMoreInteractions(repository);
+        verifyNoInteractions(exemptionsApiService);
         assertEquals(dateString, dateCaptor.getValue());
     }
 }
