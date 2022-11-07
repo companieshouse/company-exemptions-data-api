@@ -32,7 +32,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilterAt(new AuthenticationFilter(logger), BasicAuthenticationFilter.class)
-                .addFilterAt(new AuthorisationFilter(logger), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .anyRequest().permitAll();
     }
