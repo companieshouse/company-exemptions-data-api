@@ -3,7 +3,6 @@ package uk.gov.companieshouse.exemptions;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-import uk.gov.companieshouse.api.model.exemptions.CompanyExemptionsApi;
 
 import javax.persistence.Id;
 

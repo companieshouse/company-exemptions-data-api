@@ -20,13 +20,13 @@ public class AuthorisationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String privileges = request.getHeader("ERIC-Authorised-Key-Privileges");
-
-        if (!"*".equals(privileges)) {
-            logger.error(String.format("Unauthorised request received with incorrect privileges: %s", privileges));
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
+//        String privileges = request.getHeader("ERIC-Authorised-Key-Privileges");
+//
+//        if (!"*".equals(privileges)) {
+//            logger.error(String.format("Unauthorised request received with incorrect privileges: %s", privileges));
+//            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+//            return;
+//        }
 
         filterChain.doFilter(request, response);
     }
