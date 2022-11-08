@@ -7,6 +7,7 @@ import uk.gov.companieshouse.logging.Logger;
 
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @Service
 public class ExemptionsService {
@@ -57,5 +58,9 @@ public class ExemptionsService {
     private boolean isLatestRecord(String companyNumber, OffsetDateTime deltaAt) {
         String formattedDate = deltaAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
         return repository.findUpdatedExemptions(companyNumber, formattedDate).isEmpty();
+    }
+
+    public Optional<CompanyExemptionsDocument> getCompanyExemptions(String companyNumber) {
+        return null;
     }
 }
