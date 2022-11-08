@@ -33,7 +33,7 @@
 
 		<!-- internal -->
 		<structured-logging.version>1.9.14</structured-logging.version>
-		<private-api-sdk-java.version>2.0.186</private-api-sdk-java.version>
+		<private-api-sdk-java.version>2.0.195</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
 		<api-helper-java-library.version>1.4.5</api-helper-java-library.version>
 	</properties>
@@ -64,6 +64,13 @@
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-bom</artifactId>
 				<version>${mockito.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>5.9.0</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -179,6 +186,21 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-inline</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
