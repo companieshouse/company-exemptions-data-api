@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 
 import javax.persistence.Id;
+import java.util.Objects;
 
 @Document(collection = "company_exemptions")
 public class CompanyExemptionsDocument {
@@ -64,5 +65,22 @@ public class CompanyExemptionsDocument {
     public CompanyExemptionsDocument setUpdated(Updated updated) {
         this.updated = updated;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CompanyExemptionsDocument document = (CompanyExemptionsDocument) o;
+        return Objects.equals(id, document.id) && Objects.equals(created, document.created) && Objects.equals(data, document.data) && Objects.equals(deltaAt, document.deltaAt) && Objects.equals(updated, document.updated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, created, data, deltaAt, updated);
     }
 }

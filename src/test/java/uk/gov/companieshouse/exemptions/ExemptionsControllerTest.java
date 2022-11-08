@@ -1,8 +1,10 @@
 package uk.gov.companieshouse.exemptions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -21,20 +23,26 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.companieshouse.api.exemptions.ExemptionsUpdateData;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.logging.Logger;
 
+import java.util.Optional;
+
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = ExemptionsController.class)
-@ContextConfiguration(classes = {ExemptionsController.class})
+@ContextConfiguration(classes = {ExemptionsController.class, ExceptionHandlerConfig.class})
 @Import({WebSecurityConfig.class})
 class ExemptionsControllerTest {
-    private static final String UPSERT_URL = "/company-exemptions/12345678/internal";
+    private static final String URL = "/company-exemptions/12345678/internal";
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private Logger logger;
@@ -56,12 +64,11 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptions() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
                         .header("ERIC-Identity-Type", "Key")
-                        .header("ERIC-Authorised-Key-Privileges", "*")
                         .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isOk());
     }
@@ -71,12 +78,11 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsServerError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
-                .header("ERIC-Authorised-Key-Privileges", "*")
                 .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isInternalServerError());
     }
@@ -86,14 +92,57 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsClientError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
-                .header("ERIC-Authorised-Key-Privileges", "*")
                 .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    @DisplayName("Successful get company exemptions request")
+    void getCompanyExemptions() throws Exception {
+        CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+
+        when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
+
+        MvcResult result = mockMvc.perform(get(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(document, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptionsDocument.class));
+    }
+
+    @Test
+    @DisplayName("Document not found for get company exemptions request")
+    void getCompanyExemptionsNotFound() throws Exception {
+        when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.empty());
+
+        mockMvc.perform(get(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("MongoDB is unavailable for get company exemptions request")
+    void getCompanyExemptionsMongoUnavailable() throws Exception {
+        when(exemptionsService.getCompanyExemptions(any())).thenThrow(ServiceUnavailableException.class);
+
+        mockMvc.perform(get(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isServiceUnavailable());
     }
 
     private InternalExemptionsApi getRequestBody() {

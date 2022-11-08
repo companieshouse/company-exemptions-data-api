@@ -4,11 +4,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.logging.Logger;
@@ -22,6 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -30,7 +33,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ExemptionsServiceTest {
+class ExemptionsServiceImplTest {
 
     private static final String COMPANY_NUMBER = "12345678";
 
@@ -50,7 +53,7 @@ class ExemptionsServiceTest {
     private ArgumentCaptor<String> dateCaptor;
 
     @InjectMocks
-    private ExemptionsService service;
+    private ExemptionsServiceImpl service;
 
     private InternalExemptionsApi requestBody;
     private CompanyExemptionsDocument document;
@@ -134,5 +137,39 @@ class ExemptionsServiceTest {
         verify(repository).findUpdatedExemptions(COMPANY_NUMBER, dateString);
         verify(repository).save(document);
         verifyNoInteractions(exemptionsApiService);
+    }
+
+    @Test
+    @DisplayName("Test successful call to get company exemptions")
+    void getCompanyExemptions() {
+        when(repository.findById(any())).thenReturn(Optional.of(document));
+
+        Optional<CompanyExemptionsDocument> actual = service.getCompanyExemptions(COMPANY_NUMBER);
+
+        assertEquals(document, actual.get());
+        verify(repository).findById(COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Test call to get company exemptions returns not found")
+    void getCompanyExemptionsNotFound() {
+        when(repository.findById(any())).thenReturn(Optional.empty());
+
+        Optional<CompanyExemptionsDocument> actual = service.getCompanyExemptions(COMPANY_NUMBER);
+
+        assertEquals(Optional.empty(), actual);
+        verify(repository).findById(COMPANY_NUMBER);
+    }
+
+    @Test
+    @DisplayName("Test call to get company exemptions throws service unavailable")
+    void getCompanyExemptionsDataAccessException() {
+        when(repository.findById(any())).thenThrow(ServiceUnavailableException.class);
+
+        Executable executable = () -> service.getCompanyExemptions(COMPANY_NUMBER);
+
+        Exception exception = assertThrows(ServiceUnavailableException.class, executable);
+        assertEquals("Data access exception thrown when calling Mongo Repository", exception.getMessage());
+        verify(repository).findById(COMPANY_NUMBER);
     }
 }

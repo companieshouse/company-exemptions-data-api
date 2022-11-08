@@ -2,5 +2,5 @@ app_name: company-exemptions-data-api
 group: api
 weight: 999998
 routes:
-  1: ^/company-exemptions/(.*)/internal
-  2: ^/company-exemptions/healthcheck
+  1: ^/company-exemptions/healthcheck
+  2: ^/company-exemptions/(.*)/internal
