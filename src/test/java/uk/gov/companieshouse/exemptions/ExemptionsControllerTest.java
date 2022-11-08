@@ -36,8 +36,7 @@ import java.util.Optional;
 @ContextConfiguration(classes = {ExemptionsController.class, ExceptionHandlerConfig.class})
 @Import({WebSecurityConfig.class})
 class ExemptionsControllerTest {
-    private static final String UPSERT_URL = "/company-exemptions/12345678/internal";
-    private static final String GET_URL = "/company/12345678/exemption";
+    private static final String URL = "/company-exemptions/12345678/internal";
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +64,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptions() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -79,7 +78,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsServerError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -93,7 +92,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsClientError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
 
-        mockMvc.perform(put(UPSERT_URL)
+        mockMvc.perform(put(URL)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -109,7 +108,7 @@ class ExemptionsControllerTest {
 
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
 
-        MvcResult result = mockMvc.perform(get(GET_URL)
+        MvcResult result = mockMvc.perform(get(URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -125,7 +124,7 @@ class ExemptionsControllerTest {
     void getCompanyExemptionsNotFound() throws Exception {
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(GET_URL)
+        mockMvc.perform(get(URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -138,7 +137,7 @@ class ExemptionsControllerTest {
     void getCompanyExemptionsMongoUnavailable() throws Exception {
         when(exemptionsService.getCompanyExemptions(any())).thenThrow(ServiceUnavailableException.class);
 
-        mockMvc.perform(get(GET_URL)
+        mockMvc.perform(get(URL)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")

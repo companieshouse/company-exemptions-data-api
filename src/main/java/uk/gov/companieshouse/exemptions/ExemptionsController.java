@@ -38,7 +38,7 @@ public class ExemptionsController {
         }
     }
 
-    @GetMapping("/company/{company_number}/exemption")
+    @GetMapping("/company-exemptions/{company_number}/internal")
     public ResponseEntity<CompanyExemptionsDocument> companyExemptionsGet(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
