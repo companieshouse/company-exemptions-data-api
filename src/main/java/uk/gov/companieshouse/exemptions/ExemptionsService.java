@@ -45,7 +45,7 @@ public class ExemptionsService {
                         companyNumber));
                 return serviceStatus;
             } catch (IllegalArgumentException exp) {
-                logger.error("Illegal argument exception caught when saving to repository", exp);
+                logger.error("Illegal argument exception caught when processing upsert", exp);
                 return ServiceStatus.SERVER_ERROR;
             }
         } else {
