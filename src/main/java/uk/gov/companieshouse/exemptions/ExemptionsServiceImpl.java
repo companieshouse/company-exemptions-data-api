@@ -47,8 +47,8 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         contextId,
                         companyNumber));
                 return serviceStatus;
-            } catch (IllegalArgumentException exp) {
-                logger.error("Illegal argument exception caught when processing upsert", exp);
+            } catch (IllegalArgumentException ex) {
+                logger.error("Illegal argument exception caught when processing upsert", ex);
                 return ServiceStatus.SERVER_ERROR;
             }
         } else {
@@ -61,9 +61,35 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     public Optional<CompanyExemptionsDocument> getCompanyExemptions(String companyNumber) {
         try {
             return repository.findById(companyNumber);
-        } catch (DataAccessException exp) {
-            logger.error("Failed to connect to MongoDb", exp);
+        } catch (DataAccessException ex) {
+            logger.error("Failed to connect to MongoDb", ex);
             throw new ServiceUnavailableException("Data access exception thrown when calling Mongo Repository");
+        }
+    }
+
+    @Override
+    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber) {
+        try {
+            Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
+            if (document.isEmpty()) {
+                logger.error(String.format("Company exemptions do not exist for company number %s", companyNumber));
+                return ServiceStatus.CLIENT_ERROR;
+            }
+            ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document.get().getData(), true));
+            logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
+
+            if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                repository.deleteById(companyNumber);
+                logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
+            }
+
+            return serviceStatus;
+        } catch (IllegalArgumentException ex) {
+            logger.error("Error calling chs-kafka-api");
+            return ServiceStatus.SERVER_ERROR;
+        } catch (DataAccessException ex) {
+            logger.error("Error connecting to MongoDB");
+            return ServiceStatus.SERVER_ERROR;
         }
     }
 

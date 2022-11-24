@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 
 @ExtendWith(MockitoExtension.class)
 class ResourceChangedRequestMapperTest {
@@ -47,6 +48,15 @@ class ResourceChangedRequestMapperTest {
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
                         .withEventType("changed")
+                        .withEventPublishedAt(DATE)
+                        .build(),
+                ResourceChangedTestArgument.builder()
+                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", new CompanyExemptions(), true))
+                        .withContextId(EXPECTED_CONTEXT_ID)
+                        .withResourceUri("company/12345678/exemptions")
+                        .withResourceKind("company-exemptions")
+                        .withEventType("deleted")
+                        .withDeletedData(new CompanyExemptions())
                         .withEventPublishedAt(DATE)
                         .build()
         );
