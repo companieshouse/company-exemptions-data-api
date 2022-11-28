@@ -15,12 +15,19 @@ public class ResourceChangedRequestMapper {
     }
 
     public ChangedResource mapChangedResource(ResourceChangedRequest request) {
-        return new ChangedResource()
+        ChangedResourceEvent event = new ChangedResourceEvent().publishedAt(this.timestampGenerator.get());
+        ChangedResource changedResource = new ChangedResource()
                 .resourceUri(String.format("company/%s/exemptions", request.getCompanyNumber()))
                 .resourceKind("company-exemptions")
-                .event(new ChangedResourceEvent()
-                        .type("changed")
-                        .publishedAt(this.timestampGenerator.get()))
+                .event(event)
                 .contextId(request.getContextId());
+
+        if (request.getIsDelete()) {
+            event.setType("deleted");
+            changedResource.setDeletedData(request.getExemptionsData());
+        } else {
+            event.setType("changed");
+        }
+        return changedResource;
     }
 }

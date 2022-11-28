@@ -51,11 +51,11 @@ public class ExemptionsApiService {
         try {
             changedResourcePost.execute();
             return ServiceStatus.SUCCESS;
-        } catch (ApiErrorResponseException exp) {
-            if (!HttpStatus.valueOf(exp.getStatusCode()).is2xxSuccessful()) {
-                logger.error("Unsuccessful call to /resource-changed endpoint", exp);
+        } catch (ApiErrorResponseException ex) {
+            if (!HttpStatus.valueOf(ex.getStatusCode()).is2xxSuccessful()) {
+                logger.error("Unsuccessful call to /resource-changed endpoint", ex);
             } else {
-                logger.error("Error occurred while calling /resource-changed endpoint", exp);
+                logger.error("Error occurred while calling /resource-changed endpoint", ex);
             }
             return ServiceStatus.SERVER_ERROR;
         }

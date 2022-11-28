@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -143,6 +144,45 @@ class ExemptionsControllerTest {
                         .header("ERIC-Identity", "Test-Identity")
                         .header("ERIC-Identity-Type", "Key"))
                 .andExpect(status().isServiceUnavailable());
+    }
+
+    @Test
+    @DisplayName("Successful delete company exemptions request")
+    void deleteCompanyExemptions() throws Exception {
+        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SUCCESS);
+
+        mockMvc.perform(delete(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Server error delete request")
+    void deleteCompanyExemptionsServerError() throws Exception {
+        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
+
+        mockMvc.perform(delete(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @DisplayName("Not found delete request")
+    void deleteCompanyExemptionsNotFound() throws Exception {
+        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
+
+        mockMvc.perform(delete(URL)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isNotFound());
     }
 
     private InternalExemptionsApi getRequestBody() {
