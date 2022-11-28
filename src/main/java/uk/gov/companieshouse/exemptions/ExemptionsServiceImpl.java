@@ -27,28 +27,34 @@ public class ExemptionsServiceImpl implements ExemptionsService {
 
     @Override
     public ServiceStatus upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
-
         if (isLatestRecord(companyNumber, requestBody.getInternalData().getDeltaAt())) {
             CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
 
-            // If the document to be updated already has created_at then reuse it
-            // otherwise, set it to the delta's updated_at field
-            repository.findById(companyNumber).map(CompanyExemptionsDocument::getCreated)
-                    .ifPresentOrElse((document::setCreated),
-                            () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
-
             try {
-                repository.save(document);
-                logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
-                        companyNumber,
-                        contextId));
+                // If the document to be updated already has created_at then reuse it
+                // otherwise, set it to the delta's updated_at field
+                repository.findById(companyNumber).map(CompanyExemptionsDocument::getCreated)
+                        .ifPresentOrElse((document::setCreated),
+                                () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
+
                 ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
                 logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
                         contextId,
                         companyNumber));
+
+                if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                    repository.save(document);
+                    logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
+                            companyNumber,
+                            contextId));
+                }
+
                 return serviceStatus;
             } catch (IllegalArgumentException ex) {
                 logger.error("Illegal argument exception caught when processing upsert", ex);
+                return ServiceStatus.SERVER_ERROR;
+            } catch (DataAccessException ex) {
+                logger.error("Error connecting to MongoDB");
                 return ServiceStatus.SERVER_ERROR;
             }
         } else {
