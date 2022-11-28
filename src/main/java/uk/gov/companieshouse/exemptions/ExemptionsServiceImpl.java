@@ -38,11 +38,11 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
 
                 ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
-                logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
-                        contextId,
-                        companyNumber));
 
                 if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                    logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
+                            contextId,
+                            companyNumber));
                     repository.save(document);
                     logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
                             companyNumber,
@@ -82,9 +82,9 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 return ServiceStatus.CLIENT_ERROR;
             }
             ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document.get().getData(), true));
-            logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
 
             if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
                 repository.deleteById(companyNumber);
                 logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
             }
