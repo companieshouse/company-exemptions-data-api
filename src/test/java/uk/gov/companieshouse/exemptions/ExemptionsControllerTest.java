@@ -25,6 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.ExemptionsUpdateData;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
@@ -37,7 +38,8 @@ import java.util.Optional;
 @ContextConfiguration(classes = {ExemptionsController.class, ExceptionHandlerConfig.class})
 @Import({WebSecurityConfig.class})
 class ExemptionsControllerTest {
-    private static final String URL = "/company-exemptions/12345678/internal";
+    private static final String URI = "/company-exemptions/12345678/internal";
+    private static final String GET_URI = "/company/12345678/exemptions";
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +67,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptions() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
-        mockMvc.perform(put(URL)
+        mockMvc.perform(put(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -79,7 +81,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsServerError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
-        mockMvc.perform(put(URL)
+        mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -93,7 +95,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsClientError() throws Exception {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
 
-        mockMvc.perform(put(URL)
+        mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -106,10 +108,12 @@ class ExemptionsControllerTest {
     @DisplayName("Successful get company exemptions request")
     void getCompanyExemptions() throws Exception {
         CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+        CompanyExemptions data = new CompanyExemptions();
+        document.setData(data);
 
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
 
-        MvcResult result = mockMvc.perform(get(URL)
+        MvcResult result = mockMvc.perform(get(GET_URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -117,7 +121,7 @@ class ExemptionsControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        assertEquals(document, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptionsDocument.class));
+        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
     }
 
     @Test
@@ -125,7 +129,7 @@ class ExemptionsControllerTest {
     void getCompanyExemptionsNotFound() throws Exception {
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.empty());
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(get(GET_URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -138,7 +142,7 @@ class ExemptionsControllerTest {
     void getCompanyExemptionsMongoUnavailable() throws Exception {
         when(exemptionsService.getCompanyExemptions(any())).thenThrow(ServiceUnavailableException.class);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(get(GET_URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -151,7 +155,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptions() throws Exception {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
-        mockMvc.perform(delete(URL)
+        mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -164,7 +168,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsServerError() throws Exception {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
-        mockMvc.perform(delete(URL)
+        mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -177,7 +181,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsNotFound() throws Exception {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
 
-        mockMvc.perform(delete(URL)
+        mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
