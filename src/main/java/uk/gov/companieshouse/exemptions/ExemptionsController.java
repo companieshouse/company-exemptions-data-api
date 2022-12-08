@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -44,15 +45,15 @@ public class ExemptionsController {
         }
     }
 
-    @GetMapping("/company-exemptions/{company_number}/internal")
-    public ResponseEntity<CompanyExemptionsDocument> companyExemptionsGet(
+    @GetMapping("/company/{company_number}/exemptions")
+    public ResponseEntity<CompanyExemptions> companyExemptionsGet(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
         logger.info(String.format("Getting company exemptions for company number %s", companyNumber));
 
         Optional<CompanyExemptionsDocument> document = service.getCompanyExemptions(companyNumber);
 
-        return document.map(companyExemptionsDocument -> ResponseEntity.ok().body(companyExemptionsDocument))
+        return document.map(companyExemptionsDocument -> ResponseEntity.ok().body(companyExemptionsDocument.getData()))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
