@@ -145,7 +145,6 @@ class ExemptionsServiceImplTest {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.emptyList());
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
         when(repository.save(document)).thenThrow(ServiceUnavailableException.class);
 
         ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
@@ -153,8 +152,8 @@ class ExemptionsServiceImplTest {
         assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
         assertEquals(dateString, dateCaptor.getValue());
         verify(repository).findUpdatedExemptions(COMPANY_NUMBER, dateString);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
         verify(repository).save(document);
+        verifyNoInteractions(exemptionsApiService);
     }
 
     @Test
@@ -164,6 +163,7 @@ class ExemptionsServiceImplTest {
         when(repository.findUpdatedExemptions(eq(COMPANY_NUMBER), dateCaptor.capture())).thenReturn(Collections.emptyList());
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(repository.save(any())).thenReturn(document);
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
         // when
@@ -172,8 +172,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).save(document);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test

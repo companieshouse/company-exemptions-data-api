@@ -37,17 +37,15 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         .ifPresentOrElse((document::setCreated),
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
 
-                ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+                repository.save(document);
+                logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
+                        companyNumber,
+                        contextId));
 
-                if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
-                    logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
-                            contextId,
-                            companyNumber));
-                    repository.save(document);
-                    logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
-                            companyNumber,
-                            contextId));
-                }
+                ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+                logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
+                        contextId,
+                        companyNumber));
 
                 return serviceStatus;
             } catch (IllegalArgumentException ex) {
