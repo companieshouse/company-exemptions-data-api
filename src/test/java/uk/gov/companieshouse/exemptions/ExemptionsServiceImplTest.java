@@ -258,8 +258,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).deleteById(COMPANY_NUMBER);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -276,8 +276,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).deleteById(COMPANY_NUMBER);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -302,7 +302,6 @@ class ExemptionsServiceImplTest {
         // given
         document.setData(new CompanyExemptions());
         when(repository.findById(any())).thenReturn(Optional.of(document));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
         doThrow(ServiceUnavailableException.class).when(repository).deleteById(any());
 
         // when
@@ -311,7 +310,7 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
         verify(repository).deleteById(COMPANY_NUMBER);
+        verifyNoInteractions(exemptionsApiService);
     }
 }
