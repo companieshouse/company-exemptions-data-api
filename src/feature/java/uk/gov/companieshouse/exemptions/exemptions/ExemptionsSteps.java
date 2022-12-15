@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.companieshouse.exemptions.config.AbstractMongoConfig.mongoDBContainer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.And;
@@ -38,6 +39,11 @@ public class ExemptionsSteps {
     @Given("the company exemptions data api service is running")
     public void theApiServiceisRunning() {
         assertThat(restTemplate).isNotNull();
+    }
+
+    @And("the company exemptions database isn't available")
+    public void stopMongoDbContainer() {
+        mongoDBContainer.stop();
     }
 
     @Given("exemptions exists for a company with company number {string}")

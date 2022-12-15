@@ -3,6 +3,7 @@ package uk.gov.companieshouse.exemptions;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.companieshouse.exemptions.config.AbstractMongoConfig;
@@ -13,4 +14,8 @@ import uk.gov.companieshouse.exemptions.config.AbstractMongoConfig;
 @DirtiesContext
 @ActiveProfiles({"test"})
 public class Configuration extends AbstractMongoConfig {
+
+    @MockBean
+    public ExemptionsApiService exemptionsApiService;
+
 }
