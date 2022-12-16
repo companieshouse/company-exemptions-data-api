@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.exemptions.config;
+package uk.gov.companieshouse.exemptions;
 
 import java.util.HashMap;
 import java.util.Map;

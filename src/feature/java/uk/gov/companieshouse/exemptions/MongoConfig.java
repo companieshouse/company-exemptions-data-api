@@ -1,4 +1,4 @@
-package uk.gov.companieshouse.exemptions.config;
+package uk.gov.companieshouse.exemptions;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -8,7 +8,7 @@ import org.testcontainers.utility.DockerImageName;
 /**
  * Mongodb configuration runs on test container.
  */
-public class AbstractMongoConfig {
+public class MongoConfig {
 
     public static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
             DockerImageName.parse("mongo:4.0.10"));

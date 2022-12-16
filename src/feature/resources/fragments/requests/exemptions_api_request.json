@@ -1,0 +1,19 @@
+{
+  "external_data": {
+    "exemptions": {
+      "psc_exempt_as_trading_on_uk_regulated_market": {
+        "items": [
+          {
+            "exempt_from": "2020-10-13T00:00:00.000Z",
+            "exempt_to": "2020-10-13T00:00:00.000Z"
+          }
+        ],
+        "exemption_type": "psc-exempt-as-trading-on-uk-regulated-market"
+      }
+    }
+  },
+  "internal_data": {
+    "delta_at": "2022-12-16T13:45:30.000Z",
+    "updated_by": "demo@ch.gov.uk"
+  }
+}

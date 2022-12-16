@@ -36,6 +36,7 @@ public class ExemptionsController {
 
         ServiceStatus serviceStatus = service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
 
+        System.out.println(serviceStatus);
         if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
             return ResponseEntity.internalServerError().build();
         } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {

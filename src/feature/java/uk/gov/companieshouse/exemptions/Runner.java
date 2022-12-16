@@ -10,7 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 @Suite
 @IncludeEngines("cucumber")
-@SelectClasspathResource("features")
+@SelectClasspathResource("features/test_to_run.feature")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "uk.gov.companieshouse.exemptions")
 public class Runner  {
 
