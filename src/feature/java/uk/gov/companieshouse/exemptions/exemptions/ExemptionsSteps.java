@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -27,6 +28,7 @@ import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.CucumberContext;
 import uk.gov.companieshouse.exemptions.ExemptionsApiService;
+import uk.gov.companieshouse.exemptions.ExemptionsRepository;
 import uk.gov.companieshouse.exemptions.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.ServiceStatus;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
@@ -45,7 +47,18 @@ public class ExemptionsSteps {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private ExemptionsRepository exemptionsRepository;
+
+    @Autowired
     protected TestRestTemplate restTemplate;
+
+    @Before
+    public void dbCleanUp(){
+        if (!mongoDBContainer.isRunning()) {
+            mongoDBContainer.start();
+        }
+        exemptionsRepository.deleteAll();
+    }
 
     @Given("the company exemptions data api service is running")
     public void theApiServiceisRunning() {
@@ -131,7 +144,7 @@ public class ExemptionsSteps {
     }
 
     @And("the CHS Kafka API service is invoked for company number {string}")
-    public void invokeChsKafkaApi(String companyNumber) {
+    public void verifyChsKafkaApiRuns(String companyNumber) {
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
