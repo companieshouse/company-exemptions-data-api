@@ -120,10 +120,12 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
 
+        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(ServiceStatus.SUCCESS);
+
         HttpEntity request = new HttpEntity(payload, headers);
         String uri = "/company-exemptions/"+ companyNumber + "/internal";
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
-
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
@@ -133,6 +135,5 @@ public class ExemptionsSteps {
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
-        when(exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest)).thenReturn(ServiceStatus.SUCCESS);
     }
 }
