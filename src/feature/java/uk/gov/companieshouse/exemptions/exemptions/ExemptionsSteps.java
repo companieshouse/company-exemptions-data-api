@@ -1,11 +1,17 @@
 package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doReturn;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
+import static uk.gov.companieshouse.exemptions.ServiceStatus.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
@@ -14,6 +20,8 @@ import io.cucumber.java.en.When;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -25,12 +33,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-import uk.gov.companieshouse.exemptions.CompanyExemptionsDocument;
-import uk.gov.companieshouse.exemptions.CucumberContext;
-import uk.gov.companieshouse.exemptions.ExemptionsApiService;
-import uk.gov.companieshouse.exemptions.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.ServiceStatus;
+import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
+import uk.gov.companieshouse.exemptions.*;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
 
 public class ExemptionsSteps {
@@ -39,6 +43,9 @@ public class ExemptionsSteps {
 
     @Autowired
     private ExemptionsApiService exemptionsApiService;
+
+    @Autowired
+    private ExemptionsService service;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -134,7 +141,7 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
 
         when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(ServiceStatus.SUCCESS);
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(SUCCESS);
 
         HttpEntity request = new HttpEntity(payload, headers);
         String uri = "/company-exemptions/"+ companyNumber + "/internal";
@@ -149,4 +156,58 @@ public class ExemptionsSteps {
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
+
+    @And("the CHS Kafka API service is not invoked for company number {string}")
+    public void verifyChsKafkaApiNotInvoked(String companyNumber){
+        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
+        verify(exemptionsApiService, times(0)).invokeChsKafkaApi(resourceChangedRequest);
+    }
+
+    @And("nothing is persisted in the database")
+    public void nothingIsPersistedInTheDatabase() {
+        List<CompanyExemptionsDocument> dbDocs = exemptionsRepository.findAll();
+        assertThat(dbDocs).hasSize(0);
+    }
+
+    @When("the CHS Kafka API service is unavailable")
+    public void ChsKafkaApiUnavailable() throws IOException{
+//        doThrow(ServiceUnavailableException.class)
+//                .when(exemptionsApiService).invokeChsKafkaApi(any(ResourceChangedRequest.class));
+    }
+
+    @When("CHS Kafka API Service is available")
+    public void ChsKafKaApiAvailable(){
+        String companyNumber="00006400";
+        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(ServiceStatus.SUCCESS);
+//        doReturn(ServiceStatus.SUCCESS).when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+//                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)));
+    }
+
+    @And ("the exemptions database is down")
+    public void exemptionsDatabaseIsDown(){
+        mongoDBContainer.stop();
+    }
+
+    @When("a Put request is sent without ERIC headers")
+    public void PutRequestSentWithoutERICHeaders(){
+        String payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity request = new HttpEntity(payload, headers);
+        String uri = "/company-exemptions/{companyNumber}/internal";
+        String companyNumber="00006400";
+
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
 }
