@@ -2,13 +2,10 @@ package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
-import static uk.gov.companieshouse.exemptions.ServiceStatus.*;
+import static uk.gov.companieshouse.exemptions.ServiceStatus.SERVER_ERROR;
+import static uk.gov.companieshouse.exemptions.ServiceStatus.SUCCESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.After;
@@ -21,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,7 +142,7 @@ public class ExemptionsSteps {
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
 
         HttpEntity request = new HttpEntity(payload, headers);
-        String uri = "/company-exemptions/"+ companyNumber + "/internal";
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -157,11 +155,9 @@ public class ExemptionsSteps {
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
 
-    @And("the CHS Kafka API service is not invoked for company number {string}")
-    public void verifyChsKafkaApiNotInvoked(String companyNumber){
-        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
-        verify(exemptionsApiService, times(0)).invokeChsKafkaApi(resourceChangedRequest);
+    @And("the CHS Kafka API service is not invoked")
+    public void verifyChsKafkaApiNotInvoked(){
+        verifyNoInteractions(exemptionsApiService);
     }
 
     @And("nothing is persisted in the database")
@@ -185,7 +181,7 @@ public class ExemptionsSteps {
         mongoDBContainer.stop();
     }
 
-    @When("a Put request is sent without ERIC headers")
+    @When("a PUT request is sent without ERIC headers")
     public void PutRequestSentWithoutERICHeaders(){
         String payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
         HttpHeaders headers = new HttpHeaders();
@@ -198,7 +194,7 @@ public class ExemptionsSteps {
 
         HttpEntity request = new HttpEntity(payload, headers);
         String uri = "/company-exemptions/{companyNumber}/internal";
-        String companyNumber="00006400";
+        String companyNumber = "00006400";
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
 
@@ -224,5 +220,76 @@ public class ExemptionsSteps {
         assertThat(expected.getEtag()).isEqualTo(actual.getEtag());
         assertThat(expected.getKind()).isEqualTo(actual.getKind());
 
+    }
+
+    @And("a {string} exists for the given {string}")
+    public void saveExemptionsResourceToMongo(String source, String companyNumber) throws IOException {
+        File file = new ClassPathResource("/fragments/responses/" + source + ".json").getFile();
+        CompanyExemptions exemptionsData = objectMapper.readValue(file, CompanyExemptions.class);
+        CompanyExemptionsDocument companyExemptions = new CompanyExemptionsDocument();
+        companyExemptions.setData(exemptionsData);
+        companyExemptions.setId(companyNumber);
+
+        mongoTemplate.save(companyExemptions);
+        CucumberContext.CONTEXT.set("exemptionsData", exemptionsData);
+    }
+
+    @When("a request is sent to the delete endpoint for {string}")
+    public void sendRequestToDeleteEndpoint(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+
+        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+
+        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true)))
+                .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
+
+        HttpEntity request = new HttpEntity(null, headers);
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+    }
+
+    @And("the CHS Kafka Api service is invoked for {string} for a delete")
+    public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
+        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+
+        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true);
+        verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
+    }
+
+    @And("the resource does not exist in Mongo for {string}")
+    public void verifyResourceWasDeletedInMongo(String companyNumber) {
+        CompanyExemptionsDocument document = mongoTemplate.findById(companyNumber, CompanyExemptionsDocument.class);
+        assertThat(document).isNull();
+    }
+
+    @When("a DELETE request is sent without ERIC headers")
+    public void deleteRequestSentWithoutEricHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+
+        HttpEntity request = new HttpEntity(null, headers);
+        String uri = "/company-exemptions/{companyNumber}/internal";
+        String companyNumber = "00006400";
+
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 }

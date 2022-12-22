@@ -1,4 +1,4 @@
-Feature: Upserts company exemption resource to database
+Feature: Upsert company exemption resource to database
 
   Scenario Outline: Processes exemptions upsert request successfully
 
@@ -15,7 +15,7 @@ Feature: Upserts company exemption resource to database
 
       When a PUT request matching payload within "<file>" is sent for company number "<company_number>"
       Then a response status code of 400 should be returned
-      And the CHS Kafka API service is not invoked for company number "<company_number>"
+      And the CHS Kafka API service is not invoked
       And nothing is persisted in the database
 
       Examples:
@@ -39,13 +39,13 @@ Feature: Upserts company exemption resource to database
     Given the exemptions database is unavailable
     When a PUT request matching payload within "<file>" is sent for company number "<company_number>"
     Then a response status code of 503 should be returned
-    And the CHS Kafka API service is not invoked for company number "<company_number>"
+    And the CHS Kafka API service is not invoked
 
     Examples:
       | company_number | file                   |
       | 00006400       | exemptions_api_request |
 
-    Scenario: Processing exemptions information unsuccessfully without ERIC headers after forbidden error
+    Scenario: Processing exemptions information unsuccessfully without ERIC headers after unauthorised error
 
-      When a Put request is sent without ERIC headers
+      When a PUT request is sent without ERIC headers
       Then a response status code of 401 should be returned
