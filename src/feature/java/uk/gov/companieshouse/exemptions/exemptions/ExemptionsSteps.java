@@ -141,7 +141,7 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
 
         when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(SUCCESS);
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
 
         HttpEntity request = new HttpEntity(payload, headers);
         String uri = "/company-exemptions/"+ companyNumber + "/internal";
@@ -170,22 +170,17 @@ public class ExemptionsSteps {
         assertThat(dbDocs).hasSize(0);
     }
 
-    @When("the CHS Kafka API service is unavailable")
-    public void ChsKafkaApiUnavailable() throws IOException{
-//        doThrow(ServiceUnavailableException.class)
-//                .when(exemptionsApiService).invokeChsKafkaApi(any(ResourceChangedRequest.class));
+    @Given("the CHS Kafka API service is unavailable")
+    public void ChsKafkaApiUnavailable() {
+        CucumberContext.CONTEXT.set("serviceStatus", SERVER_ERROR);
     }
 
-    @When("CHS Kafka API Service is available")
+    @Given("CHS Kafka API Service is available")
     public void ChsKafKaApiAvailable(){
-        String companyNumber="00006400";
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false))).thenReturn(ServiceStatus.SUCCESS);
-//        doReturn(ServiceStatus.SUCCESS).when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-//                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)));
+        CucumberContext.CONTEXT.set("serviceStatus", SUCCESS);
     }
 
-    @And ("the exemptions database is down")
+    @Given ("the exemptions database is unavailable")
     public void exemptionsDatabaseIsDown(){
         mongoDBContainer.stop();
     }
@@ -210,4 +205,24 @@ public class ExemptionsSteps {
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 
+    @And("the exemptions {string} for {string} have been saved in the database")
+    public void exemptionsForCompanyNumberHaveBeenSavedInDatabase(String source, String companyNumber) throws IOException {
+        File file = new ClassPathResource("/fragments/responses/" + source + ".json").getFile();
+        CompanyExemptions exemptionsData = objectMapper.readValue(file, CompanyExemptions.class);
+        CompanyExemptionsDocument companyExemptions = new CompanyExemptionsDocument();
+        companyExemptions.setData(exemptionsData);
+        companyExemptions.setId(companyNumber);
+
+        mongoTemplate.save(companyExemptions);
+
+        CompanyExemptions actual = mongoTemplate.findById(companyNumber, CompanyExemptionsDocument.class).getData();
+
+        CompanyExemptions expected = objectMapper.readValue(file, CompanyExemptions.class);
+
+        assertThat(expected.getExemptions()).isEqualTo(actual.getExemptions());
+        assertThat(expected.getLinks()).isEqualTo(actual.getLinks());
+        assertThat(expected.getEtag()).isEqualTo(actual.getEtag());
+        assertThat(expected.getKind()).isEqualTo(actual.getKind());
+
+    }
 }

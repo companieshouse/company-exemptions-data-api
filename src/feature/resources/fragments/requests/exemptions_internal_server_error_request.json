@@ -1,0 +1,14 @@
+{
+  "external_data": {
+    "exemptions": {
+      "psc_exempt_as_trading_on_uk_regulated_market": {
+        "items": [],
+        "exemption_type": "psc-exempt-as-trading-on-uk-regulated-market"
+      }
+    }
+  },
+  "internal_data": {
+    "delta_at": null,
+    "updated_by": "demo@ch.gov.uk"
+  }
+}

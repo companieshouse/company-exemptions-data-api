@@ -1,14 +1,14 @@
 {
   "external_data": {
     "exemptions": {
-      "psc_exempt_as_trading_on_uk_regulated_market": {
+      "psc_exempt_as_trading_on_regulated_market": {
         "items": [
           {
-            "exempt_from": "2020-10-13T00:00:00.000Z",
-            "exempt_to": "2020-10-13T00:00:00.000Z"
+            "exempt_from": "2018-12-19T00:00:00.000Z",
+            "exempt_to": "2022-12-19T00:00:00.000Z"
           }
         ],
-        "exemption_type": "psc-exempt-as-trading-on-uk-regulated-market"
+        "exemption_type": "psc-exempt-as-trading-on-regulated-market"
       }
     }
   },
