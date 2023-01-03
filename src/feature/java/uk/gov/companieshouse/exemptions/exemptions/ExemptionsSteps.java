@@ -171,8 +171,8 @@ public class ExemptionsSteps {
         mongoDBContainer.stop();
     }
 
-    @When("a PUT request is sent without ERIC headers")
-    public void PutRequestSentWithoutERICHeaders(){
+    @When("a PUT request is sent without ERIC headers for {string}")
+    public void PutRequestSentWithoutERICHeaders(String companyNumber){
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -183,8 +183,7 @@ public class ExemptionsSteps {
 
         String payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
         HttpEntity<String> request = new HttpEntity<String>(payload, headers);
-        String uri = "/company-exemptions/{companyNumber}/internal";
-        String companyNumber = "00006400";
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());

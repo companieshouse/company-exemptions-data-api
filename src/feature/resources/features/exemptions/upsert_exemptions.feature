@@ -45,7 +45,11 @@ Feature: Upsert company exemption resource to database
       | company_number | file                   |
       | 00006400       | exemptions_api_request |
 
-    Scenario: Processing exemptions upsert without ERIC headers causing an unauthorised error
+    Scenario Outline: Processing exemptions upsert without ERIC headers causing an unauthorised error
 
-      When a PUT request is sent without ERIC headers
+      When a PUT request is sent without ERIC headers for "<company_number>"
       Then a response status code of 401 should be returned
+
+      Examples:
+        | company_number |
+        | 00006400       |
