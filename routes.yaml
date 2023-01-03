@@ -4,4 +4,4 @@ weight: 999998
 routes:
   1: ^/company-exemptions/healthcheck
   2: ^/company-exemptions/(.*)/internal
-  3: ^/company/(.*)/exemptions
+  3: ^/company/([0-9]{8})/exemptions$
