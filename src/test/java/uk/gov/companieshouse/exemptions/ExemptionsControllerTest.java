@@ -87,7 +87,7 @@ class ExemptionsControllerTest {
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
                 .content(gson.toJson(getRequestBody())))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test
@@ -173,7 +173,7 @@ class ExemptionsControllerTest {
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
                         .header("ERIC-Identity-Type", "Key"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isServiceUnavailable());
     }
 
     @Test

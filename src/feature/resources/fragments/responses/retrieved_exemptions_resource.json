@@ -1,0 +1,18 @@
+{
+  "links": {
+    "self": "/company/00006400/exemptions"
+  },
+  "kind": "exemptions",
+  "etag": "5776376e7f99890d957f063aba9e13fdfef35cf1",
+  "exemptions": {
+    "psc_exempt_as_trading_on_regulated_market": {
+      "items": [
+        {
+          "exempt_from": "2018-12-19T00:00:00.000Z",
+          "exempt_to": "2022-12-19T00:00:00.000Z"
+        }
+      ],
+      "exemption_type": "psc-exempt-as-trading-on-regulated-market"
+    }
+  }
+}

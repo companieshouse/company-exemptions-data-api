@@ -43,6 +43,14 @@ public class ExceptionHandlerConfig {
         return new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * ServiceUnavailableException exception handler.
+     * To be thrown when there are connection issues.
+     *
+     * @param ex      exception to handle.
+     * @param request request.
+     * @return error response to return.
+     */
     @ExceptionHandler(value = {ServiceUnavailableException.class, DataAccessException.class})
     public ResponseEntity<Object> handleServiceUnavailableException(Exception ex,
                                                                     WebRequest request) {

@@ -37,10 +37,10 @@ public class ExemptionsController {
         ServiceStatus serviceStatus = service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
 
         if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } else {
+        }else {
             return ResponseEntity.ok().build();
         }
     }
@@ -66,7 +66,7 @@ public class ExemptionsController {
         ServiceStatus serviceStatus = service.deleteCompanyExemptions(contextId, companyNumber);
 
         if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
             return ResponseEntity.notFound().build();
         } else {
