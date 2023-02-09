@@ -127,6 +127,7 @@ public class ExemptionsSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
         when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)))
@@ -220,6 +221,7 @@ public class ExemptionsSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
         CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
 

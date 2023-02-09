@@ -68,12 +68,41 @@ class ExemptionsControllerTest {
         when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
         mockMvc.perform(put(URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key")
-                        .content(gson.toJson(getRequestBody())))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Unauthorised oauth2 upsert request")
+    void upsertCompanyExemptionsUnauthorisedOauth2() throws Exception {
+        when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
+
+        mockMvc.perform(put(URI)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "oauth2")
+                .content(gson.toJson(getRequestBody())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Unauthorised upsert request")
+    void upsertCompanyExemptionsUnauthorised() throws Exception {
+        when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
+
+        mockMvc.perform(put(URI)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .content(gson.toJson(getRequestBody())))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -86,6 +115,7 @@ class ExemptionsControllerTest {
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
                 .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isServiceUnavailable());
     }
@@ -100,6 +130,7 @@ class ExemptionsControllerTest {
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
                 .content(gson.toJson(getRequestBody())))
                 .andExpect(status().isConflict());
     }
@@ -114,10 +145,30 @@ class ExemptionsControllerTest {
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
 
         MvcResult result = mockMvc.perform(get(GET_URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
+    }
+
+    @Test
+    @DisplayName("Successful get company exemptions request with oauth2")
+    void getCompanyExemptionsOauth2() throws Exception {
+        CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+        CompanyExemptions data = new CompanyExemptions();
+        document.setData(data);
+
+        when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
+
+        MvcResult result = mockMvc.perform(get(GET_URI)
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "oauth2"))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -130,10 +181,11 @@ class ExemptionsControllerTest {
         when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.empty());
 
         mockMvc.perform(get(GET_URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
     }
 
@@ -143,10 +195,11 @@ class ExemptionsControllerTest {
         when(exemptionsService.getCompanyExemptions(any())).thenThrow(ServiceUnavailableException.class);
 
         mockMvc.perform(get(GET_URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
     }
 
@@ -156,10 +209,11 @@ class ExemptionsControllerTest {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SUCCESS);
 
         mockMvc.perform(delete(URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isOk());
     }
 
@@ -169,10 +223,11 @@ class ExemptionsControllerTest {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
         mockMvc.perform(delete(URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isServiceUnavailable());
     }
 
@@ -182,10 +237,11 @@ class ExemptionsControllerTest {
         when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
 
         mockMvc.perform(delete(URI)
-                        .contentType(APPLICATION_JSON)
-                        .header("x-request-id", "5342342")
-                        .header("ERIC-Identity", "Test-Identity")
-                        .header("ERIC-Identity-Type", "Key"))
+                .contentType(APPLICATION_JSON)
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
                 .andExpect(status().isNotFound());
     }
 
