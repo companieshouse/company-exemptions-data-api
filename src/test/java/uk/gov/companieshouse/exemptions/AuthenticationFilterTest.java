@@ -82,7 +82,7 @@ class AuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("Request with no identity fails ")
+    @DisplayName("Request with no identity fails")
     void doFilterInternalNoIdentity() throws ServletException, IOException {
         filter.doFilterInternal(request, response, filterChain);
 
@@ -90,7 +90,7 @@ class AuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("Request with no identity type fails ")
+    @DisplayName("Request with no identity type fails")
     void doFilterInternalNoIdentityType() throws ServletException, IOException {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
 
@@ -100,7 +100,7 @@ class AuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("Request with wrong identity type fails ")
+    @DisplayName("Request with wrong identity type fails")
     void doFilterInternalWrongIdentityType() throws ServletException, IOException {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
         when(request.getHeader("ERIC-Identity-Type")).thenReturn("identityType");
