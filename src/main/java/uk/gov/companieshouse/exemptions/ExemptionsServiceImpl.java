@@ -1,40 +1,44 @@
 package uk.gov.companieshouse.exemptions;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.logging.Logger;
 
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-
 @Service
 public class ExemptionsServiceImpl implements ExemptionsService {
 
-    @Autowired
-    private Logger logger;
+    private static final DateTimeFormatter PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
-    @Autowired
-    private ExemptionsRepository repository;
+    private final Logger logger;
+    private final ExemptionsRepository repository;
+    private final ExemptionsMapper mapper;
+    private final ExemptionsApiService exemptionsApiService;
 
-    @Autowired
-    private ExemptionsMapper mapper;
-
-    @Autowired
-    private ExemptionsApiService exemptionsApiService;
+    public ExemptionsServiceImpl(Logger logger, ExemptionsRepository repository, ExemptionsMapper mapper, ExemptionsApiService exemptionsApiService) {
+        this.logger = logger;
+        this.repository = repository;
+        this.mapper = mapper;
+        this.exemptionsApiService = exemptionsApiService;
+    }
 
     @Override
     public ServiceStatus upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
-        if (isLatestRecord(companyNumber, requestBody.getInternalData().getDeltaAt())) {
+        try {
+            Optional<CompanyExemptionsDocument> existingDocument = repository.findById(companyNumber);
+
+        // If the the document does not exist OR if the delta_at in the request is after the delta_at on the document
+        if (existingDocument.isEmpty() || requestBody.getInternalData().getDeltaAt().isAfter(OffsetDateTime.from(LocalDateTime.parse(existingDocument.get().getDeltaAt(), PATTERN)))) {
             CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
 
-            try {
-                // If the document to be updated already has created_at then reuse it
+                // If the a document already exists and it has a created field, then reuse it
                 // otherwise, set it to the delta's updated_at field
-                repository.findById(companyNumber).map(CompanyExemptionsDocument::getCreated)
-                        .ifPresentOrElse((document::setCreated),
+                existingDocument.map(CompanyExemptionsDocument::getCreated)
+                        .ifPresentOrElse(document::setCreated,
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
 
                 ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
@@ -49,16 +53,16 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                             contextId));
                 }
                 return serviceStatus;
-            } catch (IllegalArgumentException ex) {
-                logger.error("Illegal argument exception caught when processing upsert", ex);
-                return ServiceStatus.SERVER_ERROR;
-            } catch (DataAccessException ex) {
-                logger.error("Error connecting to MongoDB");
-                return ServiceStatus.SERVER_ERROR;
+            } else {
+                logger.info("Company exemptions record not persisted as it is not the latest record.");
+                return ServiceStatus.CLIENT_ERROR;
             }
-        } else {
-            logger.info("Company exemptions record not persisted as it is not the latest record.");
-            return ServiceStatus.CLIENT_ERROR;
+        } catch (IllegalArgumentException ex) {
+            logger.error("Illegal argument exception caught when processing upsert", ex);
+            return ServiceStatus.SERVER_ERROR;
+        } catch (DataAccessException ex) {
+            logger.error("Error connecting to MongoDB");
+            return ServiceStatus.SERVER_ERROR;
         }
     }
 
@@ -96,10 +100,5 @@ public class ExemptionsServiceImpl implements ExemptionsService {
             logger.error("Error connecting to MongoDB");
             return ServiceStatus.SERVER_ERROR;
         }
-    }
-
-    private boolean isLatestRecord(String companyNumber, OffsetDateTime deltaAt) {
-        String formattedDate = deltaAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
-        return repository.findUpdatedExemptions(companyNumber, formattedDate).isEmpty();
     }
 }
