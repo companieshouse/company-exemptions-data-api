@@ -37,16 +37,17 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         .ifPresentOrElse((document::setCreated),
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().getAt())));
 
-                repository.save(document);
-                logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
-                        companyNumber,
-                        contextId));
-
                 ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
                 logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
                         contextId,
                         companyNumber));
 
+                if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                    repository.save(document);
+                    logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
+                            companyNumber,
+                            contextId));
+                }
                 return serviceStatus;
             } catch (IllegalArgumentException ex) {
                 logger.error("Illegal argument exception caught when processing upsert", ex);
@@ -80,12 +81,13 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 return ServiceStatus.CLIENT_ERROR;
             }
 
-            repository.deleteById(companyNumber);
-            logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
-
             ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document.get().getData(), true));
             logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
 
+            if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                repository.deleteById(companyNumber);
+                logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
+            }
             return serviceStatus;
         } catch (IllegalArgumentException ex) {
             logger.error("Error calling chs-kafka-api");

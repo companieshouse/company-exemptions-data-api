@@ -10,8 +10,8 @@ Feature: Deletes company exemption resource from the database
     And the resource does not exist in the database for "<company_number>"
 
     Examples:
-    | company_number |
-    | 00006400       |
+      | company_number |
+      | 00006400       |
 
   Scenario Outline: 404 status code is returned when resource not found in Mongo
 
@@ -22,8 +22,8 @@ Feature: Deletes company exemption resource from the database
     And the CHS Kafka API service is not invoked
 
     Examples:
-    | company_number |
-    | 00006400       |
+      | company_number |
+      | 00006400       |
 
   Scenario Outline: A DELETE request sent when Mongo is unavailable
 
@@ -34,8 +34,8 @@ Feature: Deletes company exemption resource from the database
     And the CHS Kafka API service is not invoked
 
     Examples:
-    | company_number |
-    | 00006400       |
+      | company_number |
+      | 00006400       |
 
   Scenario Outline: A DELETE request sent when CHS Kafka Api is unavailable
 
@@ -43,10 +43,11 @@ Feature: Deletes company exemption resource from the database
     And exemptions exists for company number "<company_number>"
     When a request is sent to the delete endpoint for "<company_number>"
     Then a response status code of 503 should be returned
+    And the exemptions "<exemptions>" for "<company_number>" exist in the database
 
     Examples:
-    | company_number |
-    | 00006400       |
+      | company_number | exemptions                    |
+      | 00006400       | retrieved_exemptions_resource |
 
   Scenario Outline: A DELETE request is sent without ERIC headers causing an unauthorised error
 
@@ -54,5 +55,5 @@ Feature: Deletes company exemption resource from the database
     Then a response status code of 401 should be returned
 
     Examples:
-    | company_number |
-    | 00006400       |
+      | company_number |
+      | 00006400       |
