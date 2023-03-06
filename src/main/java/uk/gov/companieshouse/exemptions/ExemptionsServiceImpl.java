@@ -1,9 +1,10 @@
 package uk.gov.companieshouse.exemptions;
 
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
@@ -12,7 +13,7 @@ import uk.gov.companieshouse.logging.Logger;
 @Service
 public class ExemptionsServiceImpl implements ExemptionsService {
 
-    private static final DateTimeFormatter PATTERN = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").withZone(ZoneId.of("Z"));
 
     private final Logger logger;
     private final ExemptionsRepository repository;
@@ -31,11 +32,15 @@ public class ExemptionsServiceImpl implements ExemptionsService {
         try {
             Optional<CompanyExemptionsDocument> existingDocument = repository.findById(companyNumber);
 
-        // If the the document does not exist OR if the delta_at in the request is after the delta_at on the document
-        if (existingDocument.isEmpty() || requestBody.getInternalData().getDeltaAt().isAfter(OffsetDateTime.from(LocalDateTime.parse(existingDocument.get().getDeltaAt(), PATTERN)))) {
-            CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
+            // If the document does not exist OR if the delta_at in the request is after the delta_at on the document
+            if (existingDocument.isEmpty() ||
+                    StringUtils.isBlank(existingDocument.get().getDeltaAt()) ||
+                    requestBody.getInternalData().getDeltaAt()
+                            .isAfter(ZonedDateTime.parse(existingDocument.get().getDeltaAt(), FORMATTER)
+                                    .toOffsetDateTime())) {
+                CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
 
-                // If the a document already exists and it has a created field, then reuse it
+                // If a document already exists and it has a created field, then reuse it
                 // otherwise, set it to the delta's updated_at field
                 existingDocument.map(CompanyExemptionsDocument::getCreated)
                         .ifPresentOrElse(document::setCreated,

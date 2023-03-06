@@ -13,15 +13,15 @@ Feature: Upsert company exemption resource to database
 
   Scenario Outline: Processing exemptions upsert out of date delta.
 
-    Given exemptions exists for company number "<company_number>"
+    Given exemptions exists for company number "<company_number>" with delta_at "<delta_at>"
     When a PUT request matching payload within "<file>" is sent for "<company_number>"
     Then a response status code of 409 should be returned
     And the CHS Kafka API service is not invoked
-    And nothing is persisted in the database
+    And the exemptions "<exemptions>" for "<company_number>" exist in the database
 
     Examples:
-      | company_number | file                               |
-      | 00006400       | exemptions_api_request_out_of_date |
+      | company_number | delta_at             | file                               | exemptions                    |
+      | 00006400       | 20221216121025774312 | exemptions_api_request_out_of_date | retrieved_exemptions_resource |
 
   Scenario Outline: Processing exemptions upsert unsuccessfully after bad request.
 

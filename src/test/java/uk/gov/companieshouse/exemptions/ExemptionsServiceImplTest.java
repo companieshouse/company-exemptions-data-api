@@ -106,6 +106,7 @@ class ExemptionsServiceImplTest {
     @Test
     @DisplayName("Test should not update exemptions record from out of date delta")
     void outOfDateDelta() {
+        requestBody.getInternalData().setDeltaAt(OffsetDateTime.of(2018,1,1,0,0,0,0,ZoneOffset.UTC));
         when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
         ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
