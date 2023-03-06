@@ -52,7 +52,6 @@ class ExemptionsServiceImplTest {
 
     private InternalExemptionsApi requestBody;
     private CompanyExemptionsDocument document;
-    private String dateString;
     private CompanyExemptionsDocument existingDocument;
 
     @BeforeEach
@@ -66,7 +65,7 @@ class ExemptionsServiceImplTest {
         document.setUpdated(new Updated().setAt(LocalDateTime.now()));
         final DateTimeFormatter dateTimeFormatter =
                 DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        dateString = date.format(dateTimeFormatter);
+        String dateString = date.format(dateTimeFormatter);
         document.setDeltaAt(dateString);
         existingDocument = new CompanyExemptionsDocument();
         existingDocument.setDeltaAt("20221012091025774312");
@@ -116,6 +115,23 @@ class ExemptionsServiceImplTest {
     }
 
     @Test
+    @DisplayName("Test should update exemptions if existing document has no delta_at field")
+    void updateExemptionsDeltaAtAbsent() {
+        existingDocument.setDeltaAt(null);
+        existingDocument.setCreated(new Created().setAt(LocalDateTime.of(2022, 11, 2, 15, 55)));
+        when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(existingDocument));
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+
+        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+
+        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
+        assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), document.getCreated().getAt());
+        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
+        verify(repository).save(document);
+    }
+
+    @Test
     @DisplayName("Test should return status server error when save to repository throws data access exception on findById")
     void saveToRepositoryFindError() {
         when(repository.findById(COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
@@ -149,6 +165,24 @@ class ExemptionsServiceImplTest {
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SERVER_ERROR);
+
+        // when
+        ServiceStatus actual = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+
+        // then
+        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        verify(repository).findById(COMPANY_NUMBER);
+        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
+        verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    @DisplayName("Test call to upsert company exemptions when chs-kafka-api unavailable throws illegal arg exception")
+    void updateCompanyExemptionsIllegalArg() {
+        // given
+        when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
+        when(exemptionsApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
         ServiceStatus actual = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
