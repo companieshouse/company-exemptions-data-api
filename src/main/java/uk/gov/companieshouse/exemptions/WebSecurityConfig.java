@@ -1,29 +1,26 @@
 package uk.gov.companieshouse.exemptions;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import uk.gov.companieshouse.logging.Logger;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    @Autowired
-    private Logger logger;
+public class WebSecurityConfig {
 
     /**
      * Configure Http Security.
      */
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, Logger logger) throws Exception {
         http.httpBasic().disable()
                 .csrf().disable()
                 .formLogin().disable()
@@ -34,14 +31,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterAt(new AuthenticationFilter(logger), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .anyRequest().permitAll();
+        return http.build();
     }
 
     /**
      * Configure Web Security.
      */
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        // Excluding healthcheck endpoint from security filter
-        web.ignoring().antMatchers("/healthcheck");
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().antMatchers("/healthcheck");
     }
 }
