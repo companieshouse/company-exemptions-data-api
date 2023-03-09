@@ -59,7 +59,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 }
                 return serviceStatus;
             } else {
-                logger.info("Company exemptions record not persisted as it is not the latest record.");
+                logger.info(String.format("Record for company %s not persisted as it is not the latest record.", companyNumber));
                 return ServiceStatus.CLIENT_ERROR;
             }
         } catch (IllegalArgumentException ex) {
