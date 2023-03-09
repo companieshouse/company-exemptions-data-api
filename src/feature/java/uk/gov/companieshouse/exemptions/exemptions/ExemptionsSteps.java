@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -88,7 +90,7 @@ public class ExemptionsSteps {
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
 
         String uri = String.format("/company/%s/exemptions", companyNumber);
         ResponseEntity<CompanyExemptions> response = restTemplate.exchange(uri, HttpMethod.GET, request,
@@ -134,7 +136,7 @@ public class ExemptionsSteps {
                     .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
 
         String payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
-        HttpEntity<String> request = new HttpEntity<String>(payload, headers);
+        HttpEntity<String> request = new HttpEntity<>(payload, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
@@ -154,7 +156,7 @@ public class ExemptionsSteps {
 
     @And("nothing is persisted in the database")
     public void nothingIsPersistedInTheDatabase() {
-        assertThat(exemptionsRepository.findAll()).hasSize(0);
+        assertThat(exemptionsRepository.findAll()).isEmpty();
     }
 
     @Given("the CHS Kafka API service is unavailable")
@@ -183,24 +185,21 @@ public class ExemptionsSteps {
         headers.set("x-request-id", this.contextId);
 
         String payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
-        HttpEntity<String> request = new HttpEntity<String>(payload, headers);
+        HttpEntity<String> request = new HttpEntity<>(payload, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
     }
 
-    @And("the exemptions {string} for {string} have been saved in the database")
+    @And("the exemptions {string} for {string} exist in the database")
     public void exemptionsForCompanyNumberHaveBeenSavedInDatabase(String source, String companyNumber) throws IOException {
         File file = new ClassPathResource(String.format("/fragments/responses/%s.json", source)).getFile();
-        CompanyExemptions exemptionsData = objectMapper.readValue(file, CompanyExemptions.class);
-        CompanyExemptionsDocument companyExemptions = new CompanyExemptionsDocument();
-        companyExemptions.setData(exemptionsData);
-        companyExemptions.setId(companyNumber);
 
-        exemptionsRepository.save(companyExemptions);
+        Optional<CompanyExemptionsDocument> document = exemptionsRepository.findById(companyNumber);
+        assertTrue(document.isPresent());
 
-        CompanyExemptions actual = exemptionsRepository.findById(companyNumber).get().getData();
+        CompanyExemptions actual = document.get().getData();
         CompanyExemptions expected = objectMapper.readValue(file, CompanyExemptions.class);
 
         assertThat(expected.getExemptions()).isEqualTo(actual.getExemptions());
@@ -229,7 +228,7 @@ public class ExemptionsSteps {
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true)))
                 .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
 
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
 
@@ -260,7 +259,7 @@ public class ExemptionsSteps {
         CucumberContext.CONTEXT.set("contextId", this.contextId);
         headers.set("x-request-id", this.contextId);
 
-        HttpEntity<String> request = new HttpEntity<String>(null, headers);
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);

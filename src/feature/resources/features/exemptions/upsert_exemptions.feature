@@ -22,17 +22,17 @@ Feature: Upsert company exemption resource to database
         | company_number  | file                              |
         | 00006400        | exemptions_bad_request            |
 
-    Scenario Outline: Processing exemptions upsert unsuccessfully but information saved to database
+    Scenario Outline: Processing exemptions upsert fails call to chs-kafka-api and does not persist to the database
 
       Given the CHS Kafka API service is unavailable
       When a PUT request matching payload within "<file>" is sent for "<company_number>"
       Then a response status code of 503 should be returned
-      And the exemptions "<exemptions>" for "<company_number>" have been saved in the database
       And the CHS Kafka API service is invoked for upsert with "<company_number>"
+      And the resource does not exist in the database for "<company_number>"
 
       Examples:
-        | company_number  | file                   | exemptions                        |
-        | 00006400        | exemptions_api_request | retrieved_exemptions_resource |
+        | company_number  | file                   |
+        | 00006400        | exemptions_api_request |
 
   Scenario Outline: Processing exemptions upsert while database is down
 
