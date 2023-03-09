@@ -70,16 +70,22 @@ public class ExemptionsSteps {
         mongoDBContainer.stop();
     }
 
-    @And("exemptions exists for company number {string}")
-    public void saveCompanyExemptionsResourceToTheDatabase(String companyNumber) throws IOException {
+    @And("exemptions exists for company number {string} with delta_at {string}")
+    public void saveCompanyExemptionsResourceToTheDatabase(String companyNumber, String deltaAt) throws IOException {
         File source = new ClassPathResource("/fragments/responses/retrieved_exemptions_resource.json").getFile();
         CompanyExemptions exemptionsData = objectMapper.readValue(source, CompanyExemptions.class);
 
         CompanyExemptionsDocument companyExemptions = new CompanyExemptionsDocument();
         companyExemptions.setData(exemptionsData).setId(companyNumber);
+        companyExemptions.setDeltaAt(deltaAt);
 
         exemptionsRepository.save(companyExemptions);
         CucumberContext.CONTEXT.set("exemptionsData", exemptionsData);
+    }
+
+    @And("exemptions exists for company number {string}")
+    public void saveCompanyExemptionsResourceToTheDatabase(String companyNumber) throws IOException {
+       saveCompanyExemptionsResourceToTheDatabase(companyNumber, "");
     }
 
     @When("a GET request is sent for company number {string}")
