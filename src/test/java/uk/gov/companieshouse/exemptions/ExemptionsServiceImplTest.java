@@ -76,7 +76,6 @@ class ExemptionsServiceImplTest {
     @Test
     @DisplayName("Test successful insert and call to chs kafka api")
     void insertCompanyExemptions() {
-        Assertions.fail();
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
