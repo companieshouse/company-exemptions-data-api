@@ -18,7 +18,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     private final Logger logger;
     private final ExemptionsRepository repository;
     private final ExemptionsMapper mapper;
-    private final ExemptionsApiService exemptionsApiService;
+    //private final ExemptionsApiService exemptionsApiService;
 
     public ExemptionsServiceImpl(Logger logger, ExemptionsRepository repository, ExemptionsMapper mapper, ExemptionsApiService exemptionsApiService) {
         this.logger = logger;
