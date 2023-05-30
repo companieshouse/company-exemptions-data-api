@@ -1,6 +1,8 @@
 package uk.gov.companieshouse.exemptions;
 
 import java.time.ZoneOffset;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,6 +76,7 @@ class ExemptionsServiceImplTest {
     @Test
     @DisplayName("Test successful insert and call to chs kafka api")
     void insertCompanyExemptions() {
+        Assertions.fail();
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
