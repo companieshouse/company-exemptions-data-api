@@ -39,7 +39,7 @@ public class ExceptionHandlerConfig {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("timestamp", LocalDateTime.now());
         responseBody.put("message", "Bad request.");
-        request.setAttribute("javax.servlet.error.exception", ex, 0);
+        request.setAttribute("jakarta.servlet.error.exception", ex, 0);
         return new ResponseEntity<>(responseBody, HttpStatus.BAD_REQUEST);
     }
 
@@ -60,7 +60,7 @@ public class ExceptionHandlerConfig {
         Map<String, Object> responseBody = new LinkedHashMap<>();
         responseBody.put("timestamp", LocalDateTime.now());
         responseBody.put("message", "Service unavailable.");
-        request.setAttribute("javax.servlet.error.exception", ex, 0);
+        request.setAttribute("jakarta.servlet.error.exception", ex, 0);
         return new ResponseEntity<>(responseBody, HttpStatus.SERVICE_UNAVAILABLE);
     }
 }

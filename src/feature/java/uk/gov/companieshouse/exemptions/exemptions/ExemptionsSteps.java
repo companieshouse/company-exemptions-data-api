@@ -53,7 +53,7 @@ public class ExemptionsSteps {
     protected TestRestTemplate restTemplate;
 
     @Before
-    public void dbCleanUp(){
+    public void dbCleanUp() {
         if (!mongoDBContainer.isRunning()) {
             mongoDBContainer.start();
         }
@@ -101,7 +101,7 @@ public class ExemptionsSteps {
         String uri = String.format("/company/%s/exemptions", companyNumber);
         ResponseEntity<CompanyExemptions> response = restTemplate.exchange(uri, HttpMethod.GET, request,
                 CompanyExemptions.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
     }
 
@@ -145,7 +145,7 @@ public class ExemptionsSteps {
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the CHS Kafka API service is invoked for upsert with {string}")
@@ -195,7 +195,7 @@ public class ExemptionsSteps {
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the exemptions {string} for {string} exist in the database")
@@ -238,7 +238,7 @@ public class ExemptionsSteps {
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
 
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
@@ -269,6 +269,6 @@ public class ExemptionsSteps {
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCodeValue());
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }

@@ -2,10 +2,10 @@ package uk.gov.companieshouse.exemptions;
 
 import java.io.IOException;
 import java.util.Optional;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,10 +14,10 @@ import uk.gov.companieshouse.logging.Logger;
 
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final Logger logger;
+    private final Logger authLogger;
 
     public AuthenticationFilter(Logger logger) {
-        this.logger = logger;
+        this.authLogger = logger;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String ericIdentity = request.getHeader("ERIC-Identity");
 
         if (StringUtils.isBlank(ericIdentity)) {
-            logger.error("Request received without eric identity");
+            authLogger.error("Request received without eric identity");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -36,13 +36,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         if (!("key".equalsIgnoreCase(ericIdentityType)
                 || ("oauth2".equalsIgnoreCase(ericIdentityType)))) {
-            logger.error("Request received without correct eric identity type");
+            authLogger.error("Request received without correct eric identity type");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         if (!isKeyAuthorised(request, ericIdentityType)) {
-            logger.info("Supplied key does not have sufficient privilege for the action");
+            authLogger.info("Supplied key does not have sufficient privilege for the action");
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
