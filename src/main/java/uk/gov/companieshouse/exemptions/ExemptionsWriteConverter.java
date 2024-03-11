@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.lang.NonNull;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 
 @WritingConverter
@@ -21,7 +22,7 @@ public class ExemptionsWriteConverter implements Converter<CompanyExemptions, Ba
      * @return charge BSON object.
      */
     @Override
-    public BasicDBObject convert(CompanyExemptions source) {
+    public BasicDBObject convert(@NonNull CompanyExemptions source) {
         try {
             return BasicDBObject.parse(objectMapper.writeValueAsString(source));
         } catch (Exception ex) {

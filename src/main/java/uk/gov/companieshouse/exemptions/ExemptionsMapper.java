@@ -14,8 +14,7 @@ import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EX
 @Component
 public class ExemptionsMapper {
 
-    private final DateTimeFormatter dateTimeFormatter =
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS");
 
     public CompanyExemptionsDocument map(String companyNumber, InternalExemptionsApi requestBody) {
         return new CompanyExemptionsDocument()

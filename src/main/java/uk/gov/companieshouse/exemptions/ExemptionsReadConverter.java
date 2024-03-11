@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
+import org.springframework.lang.NonNull;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 
 @ReadingConverter
@@ -21,7 +22,7 @@ public class ExemptionsReadConverter implements Converter<Document, CompanyExemp
      * @return charge BSON object.
      */
     @Override
-    public CompanyExemptions convert(Document source) {
+    public CompanyExemptions convert(@NonNull Document source) {
         try {
             return objectMapper.readValue(source.toJson(), CompanyExemptions.class);
         } catch (Exception ex) {

@@ -2,37 +2,7 @@ package uk.gov.companieshouse.exemptions;
 
 import java.util.Objects;
 
-public class ResourceChangedRequest {
-
-    private final String contextId;
-    private final String companyNumber;
-    private final Object exemptionsData;
-    private final Boolean isDelete;
-
-    public ResourceChangedRequest(String contextId, String companyNumber,
-                                  Object exemptionsData, Boolean isDelete) {
-        this.contextId = contextId;
-        this.companyNumber = companyNumber;
-        this.exemptionsData = exemptionsData;
-        this.isDelete = isDelete;
-    }
-
-    public String getContextId() {
-        return contextId;
-    }
-
-    public String getCompanyNumber() {
-        return companyNumber;
-    }
-
-    public Object getExemptionsData() {
-        return exemptionsData;
-    }
-
-    public Boolean getIsDelete() {
-        return isDelete;
-    }
-
+public record ResourceChangedRequest(String contextId, String companyNumber, Object exemptionsData, Boolean isDelete) {
     @Override
     public boolean equals(Object o) {
         if (this == o) {
