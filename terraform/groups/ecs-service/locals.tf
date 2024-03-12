@@ -8,8 +8,8 @@ locals {
   eric_port                  = "10000"
   docker_repo                = "company-exemptions-data-api"
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
-  lb_listener_rule_priority  = 
-  lb_listener_paths          = 
+  lb_listener_rule_priority  = 51
+  lb_listener_paths          = ["/company-exemptions/*"]
   healthcheck_path           = "/healthcheck" # healthcheck path for company exemptions data api
   healthcheck_matcher        = "200"
   s3_config_bucket           = data.vault_generic_secret.shared_s3.data["config_bucket_name"]
