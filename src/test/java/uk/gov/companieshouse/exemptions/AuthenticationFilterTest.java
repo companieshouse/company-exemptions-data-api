@@ -126,7 +126,7 @@ class AuthenticationFilterTest {
     @DisplayName("PUT Request with OAUTH2 type and internal app privilege fails")
     void doFilterInternalOauth2WrongMethodWithPrivilege() throws ServletException, IOException {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
-        when(request.getHeader("ERIC-Identity-Type")).thenReturn("OAUTH2");
+        when(request.getHeader("ERIC-Identity-Type")).thenReturn("oauth2");
         when(request.getHeader("ERIC-Authorised-Key-Privileges")).thenReturn("internal-app");
         when(request.getMethod()).thenReturn("PUT");
 
@@ -153,6 +153,43 @@ class AuthenticationFilterTest {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
         when(request.getHeader("ERIC-Identity-Type")).thenReturn("KEY");
         when(request.getHeader("ERIC-Authorised-Key-Privileges")).thenReturn("privilege");
+        when(request.getMethod()).thenReturn("PUT");
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain, times(0)).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Set ERIC Id type as an invalid value and fail")
+    void doFilterInternalWithInvalidEricIdentityType() throws ServletException, IOException {
+        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
+        when(request.getHeader("ERIC-Identity-Type")).thenReturn("notKeyOrOauth2");
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain, times(0)).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Send invalid key and throw error")
+    void doFilterInternalWithUnauthorizedKeyDueToWrongIdType() throws ServletException, IOException {
+        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
+        when(request.getHeader("ERIC-Identity-Type")).thenReturn("OAUTH2");
+        when(request.getHeader("ERIC-Authorised-Key-Privileges")).thenReturn("privilege");
+        when(request.getMethod()).thenReturn("PUT");
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain, times(0)).doFilter(request, response);
+    }
+
+    @Test
+    @DisplayName("Send invalid key and throw error")
+    void doFilterInternalWithUnauthorizedKeyDueToWrongPrivileges() throws ServletException, IOException {
+        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
+        when(request.getHeader("ERIC-Identity-Type")).thenReturn("key");
+        when(request.getHeader("ERIC-Authorised-Key-Privileges")).thenReturn(null);
         when(request.getMethod()).thenReturn("PUT");
 
         filter.doFilterInternal(request, response, filterChain);

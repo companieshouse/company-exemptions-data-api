@@ -56,7 +56,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String[] privileges = getApiKeyPrivileges(request);
 
         return request.getMethod().equals("GET")
-                || (ericIdentityType.equalsIgnoreCase("Key")
+                || (ericIdentityType.equalsIgnoreCase("key")
                 && ArrayUtils.contains(privileges, "internal-app"));
     }
 

@@ -61,7 +61,7 @@ public class ExemptionsSteps {
     }
 
     @Given("the company exemptions data api service is running")
-    public void theApiServiceisRunning() {
+    public void theApiServiceIsRunning() {
         assertThat(restTemplate).isNotNull();
     }
 

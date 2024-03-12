@@ -3,6 +3,8 @@ package uk.gov.companieshouse.exemptions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem;
 import uk.gov.companieshouse.api.exemptions.ExemptionItem;
@@ -34,7 +36,8 @@ import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulat
 import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
 import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
 
-class ExemptionsMapperTest {
+@ExtendWith(MockitoExtension.class)
+public class ExemptionsMapperTest {
 
     private static final String COMPANY_NUMBER = "123456789";
     private static final LocalDate DATE = LocalDate.of(2022, 11, 3);

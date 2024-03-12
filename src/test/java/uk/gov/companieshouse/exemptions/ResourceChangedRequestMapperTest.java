@@ -34,16 +34,24 @@ class ResourceChangedRequestMapperTest {
         when(timestampGenerator.get()).thenReturn(DATE);
 
         // when
-        ChangedResource actual = mapper.mapChangedResource(argument.getRequest());
+        ChangedResource actual = mapper.mapChangedResource(argument.request());
 
         // then
-        assertEquals(argument.getChangedResource(), actual);
+        assertEquals(argument.changedResource(), actual);
     }
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
         return Stream.of(
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", null, false))
+                        .withContextId(EXPECTED_CONTEXT_ID)
+                        .withResourceUri("company/12345678/exemptions")
+                        .withResourceKind("company-exemptions")
+                        .withEventType("changed")
+                        .withEventPublishedAt(DATE)
+                        .build(),
+                ResourceChangedTestArgument.builder()
+                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", null, null))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
@@ -62,32 +70,17 @@ class ResourceChangedRequestMapperTest {
         );
     }
 
-    static class ResourceChangedTestArgument {
-        private final ResourceChangedRequest request;
-        private final ChangedResource changedResource;
-
-        public ResourceChangedTestArgument(ResourceChangedRequest request, ChangedResource changedResource) {
-            this.request = request;
-            this.changedResource = changedResource;
-        }
-
-        public ResourceChangedRequest getRequest() {
-            return request;
-        }
-
-        public ChangedResource getChangedResource() {
-            return changedResource;
-        }
+    record ResourceChangedTestArgument(ResourceChangedRequest request, ChangedResource changedResource) {
 
         public static ResourceChangedTestArgumentBuilder builder() {
-            return new ResourceChangedTestArgumentBuilder();
-        }
+                return new ResourceChangedTestArgumentBuilder();
+            }
 
-        @Override
-        public String toString() {
-            return this.request.toString();
+            @Override
+            public String toString() {
+                return this.request.toString();
+            }
         }
-    }
 
     static class ResourceChangedTestArgumentBuilder {
         private ResourceChangedRequest request;
