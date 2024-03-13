@@ -6,8 +6,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
-import static uk.gov.companieshouse.exemptions.ServiceStatus.SERVER_ERROR;
-import static uk.gov.companieshouse.exemptions.ServiceStatus.SUCCESS;
+import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SERVER_ERROR;
+import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SUCCESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
@@ -29,11 +29,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-import uk.gov.companieshouse.exemptions.CompanyExemptionsDocument;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.CucumberContext;
-import uk.gov.companieshouse.exemptions.ExemptionsApiService;
-import uk.gov.companieshouse.exemptions.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.ResourceChangedRequest;
+import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
+import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
+import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
 
 public class ExemptionsSteps {
