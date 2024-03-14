@@ -5,37 +5,38 @@
 	<parent>
 		<groupId>uk.gov.companieshouse</groupId>
 		<artifactId>companies-house-parent</artifactId>
-		<version>1.3.1</version>
+		<version>2.1.5</version>
 	</parent>
 	<artifactId>company-exemptions-data-api</artifactId>
 	<version>unversioned</version>
 	<name>company-exemptions-data-api</name>
 	<description>Handles CRUD operations for company exemptions</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>21</java.version>
 
-		<maven-build-helper-plugin.version>3.2.0</maven-build-helper-plugin.version>
-		<spring-boot-dependencies.version>2.7.9</spring-boot-dependencies.version>
-		<spring-boot-maven-plugin.version>2.7.9</spring-boot-maven-plugin.version>
+		<maven-build-helper-plugin.version>3.5.0</maven-build-helper-plugin.version>
+		<spring-boot-dependencies.version>3.2.3</spring-boot-dependencies.version>
+		<spring-boot-maven-plugin.version>3.2.3</spring-boot-maven-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
 		<!-- tests -->
-		<maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-		<jib-maven-plugin.version>3.1.1</jib-maven-plugin.version>
-		<cucumber.version>7.8.1</cucumber.version>
-		<test-containers.version>1.16.3</test-containers.version>
-		<maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
+		<maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+		<jib-maven-plugin.version>3.4.1</jib-maven-plugin.version>
+		<cucumber.version>7.15.0</cucumber.version>
+		<test-containers.version>1.19.7</test-containers.version>
+		<maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
-		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
-		<mockito.version>4.8.0</mockito.version>
+		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+		<mockito.version>5.2.0</mockito.version>
+		<junit.version>5.10.2</junit.version>
 
 		<!-- internal -->
-		<structured-logging.version>1.9.14</structured-logging.version>
-		<private-api-sdk-java.version>2.0.195</private-api-sdk-java.version>
-		<api-sdk-manager-java-library.version>1.0.4</api-sdk-manager-java-library.version>
-		<api-helper-java-library.version>1.4.5</api-helper-java-library.version>
+		<structured-logging.version>3.0.3</structured-logging.version>
+		<private-api-sdk-java.version>4.0.76</private-api-sdk-java.version>
+		<api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
+		<api-helper-java-library.version>3.0.1</api-helper-java-library.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -70,7 +71,7 @@
 			<dependency>
 				<groupId>org.junit</groupId>
 				<artifactId>junit-bom</artifactId>
-				<version>5.9.0</version>
+				<version>${junit.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -235,6 +236,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>pre-integration-test</id>
@@ -272,6 +274,15 @@
 				<groupId>com.google.cloud.tools</groupId>
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>${jib-maven-plugin.version}</version>
+				<configuration>
+					<from>
+						<image>416670754337.dkr.ecr.eu-west-2.amazonaws.com/ci-corretto-build-21:latest</image>
+					</from>
+					<to>
+						//Once the pipeline is moved to shared services need to update this to image reference from shared services
+						<image>169942020521.dkr.ecr.eu-west-1.amazonaws.com/local/company-exemptions-data-api:latest</image>
+					</to>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

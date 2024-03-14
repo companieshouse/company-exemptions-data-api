@@ -17,8 +17,8 @@ public class HealthCheckSteps {
     private ResultActions resultActions;
 
     @When("the user performs a healthcheck")
-    public void performLivenessCheck() throws Exception {
-        resultActions = mockMvc.perform(get("/healthcheck"));
+    public void performLivelinessCheck() throws Exception {
+        resultActions = mockMvc.perform(get("/company-exemptions/healthcheck"));
     }
 
     @Then("the response code should be {int}")
