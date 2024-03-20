@@ -9,8 +9,8 @@ locals {
   docker_repo                = "company-exemptions-data-api"
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
   lb_listener_rule_priority  = 51
-  lb_listener_paths          = ["/company-exemptions/*"]
-  healthcheck_path           = "/healthcheck" # healthcheck path for company exemptions data api
+  lb_listener_paths          = ["/company-exemptions/*/internal", "/company-exemptions/healthcheck", "/company/*/exemptions"]
+  healthcheck_path           = "/company-exemptions/healthcheck" # healthcheck path for company exemptions data api
   healthcheck_matcher        = "200"
   s3_config_bucket           = data.vault_generic_secret.shared_s3.data["config_bucket_name"]
   app_environment_filename   = "company-exemptions-data-api.env"
