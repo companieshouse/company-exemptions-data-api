@@ -34,12 +34,21 @@ data "aws_iam_role" "ecs_cluster_iam_role" {
 }
 
 data "aws_lb" "service_lb" {
-  name = "${var.environment}-chs-accountchgovuk"
+  name = "${var.environment}-chs-apichgovuk"
 }
 
 data "aws_lb_listener" "service_lb_listener" {
   load_balancer_arn = data.aws_lb.service_lb.arn
-  port              = 443
+  port = 443
+}
+
+data "aws_lb" "secondary_lb" {
+  name = "${var.environment}-chs-apichgovuk-private"
+}
+
+data "aws_lb_listener" "secondary_lb_listener" {
+  load_balancer_arn = data.aws_lb.secondary_lb.arn
+  port = 443
 }
 
 # retrieve all secrets for this stack using the stack path
