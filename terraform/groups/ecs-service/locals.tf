@@ -12,6 +12,7 @@ locals {
   lb_listener_paths          = ["/company-exemptions/*/internal", "/company-exemptions/healthcheck", "/company/*/exemptions"]
   healthcheck_path           = "/company-exemptions/healthcheck" # healthcheck path for company exemptions data api
   healthcheck_matcher        = "200"
+  vpc_name                   = local.stack_secrets["vpc_name"]
   s3_config_bucket           = data.vault_generic_secret.shared_s3.data["config_bucket_name"]
   app_environment_filename   = "company-exemptions-data-api.env"
   use_set_environment_files  = var.use_set_environment_files
@@ -20,8 +21,6 @@ locals {
 
   stack_secrets   = jsondecode(data.vault_generic_secret.stack_secrets.data_json)
   service_secrets = jsondecode(data.vault_generic_secret.service_secrets.data_json)
-
-  vpc_name = data.aws_ssm_parameter.secret[format("/%s/%s", local.name_prefix, "vpc-name")].value
 
   # create a map of secret name => secret arn to pass into ecs service module
   # using the trimprefix function to remove the prefixed path from the secret name
