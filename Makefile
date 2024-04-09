@@ -29,6 +29,10 @@ test-unit:
 test-integration:
 	mvn integration-test verify -Dskip.unit.tests=true failsafe:verify
 
+.PHONY: security-check
+security-check:
+	npm audit
+
 .PHONY: package
 package:
 ifndef version
