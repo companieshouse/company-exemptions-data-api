@@ -79,7 +79,7 @@ class ExemptionsApiServiceTest {
 
         verify(apiClientService).getInternalApiClient();
         verify(internalApiClient).privateChangedResourceHandler();
-        verify(privateChangedResourceHandler).postChangedResource("/resource-changed", changedResource);
+        verify(privateChangedResourceHandler).postChangedResource("/private/resource-changed", changedResource);
         verify(changedResourcePost).execute();
     }
 
@@ -132,7 +132,7 @@ class ExemptionsApiServiceTest {
     private void verifyExceptionScenario() throws ApiErrorResponseException {
         verify(apiClientService, times(1)).getInternalApiClient();
         verify(internalApiClient, times(1)).privateChangedResourceHandler();
-        verify(privateChangedResourceHandler, times(1)).postChangedResource("/resource-changed", changedResource);
+        verify(privateChangedResourceHandler, times(1)).postChangedResource("/private/resource-changed", changedResource);
         verify(changedResourcePost, times(1)).execute();
     }
 }
