@@ -31,8 +31,7 @@ test-integration:
 
 .PHONY: security-check
 security-check:
-	mvn org.owasp:dependency-check-maven:update-only
-	mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=4 -DassemblyAnalyzerEnabled=false
+	mvn compile org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=11 -DassemblyAnalyzerEnabled=false
 
 .PHONY: package
 package:

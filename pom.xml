@@ -37,6 +37,9 @@
 		<private-api-sdk-java.version>4.0.76</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>3.0.5</api-sdk-manager-java-library.version>
 		<api-helper-java-library.version>3.0.1</api-helper-java-library.version>
+
+		<!-- OWASP dependency checker -->
+		<dependency-check-plugin.version>9.1.0</dependency-check-plugin.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -125,6 +128,12 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 		<dependency>
+<!--			Overriding spring-web version to remove vulnerability-->
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>6.1.6</version>
+		</dependency>
+		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>structured-logging</artifactId>
 			<version>${structured-logging.version}</version>
@@ -138,6 +147,13 @@
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-sdk-manager-java-library</artifactId>
 			<version>${api-sdk-manager-java-library.version}</version>
+			<exclusions>
+				<!--excluded to remove vulnerability-->
+				<exclusion>
+					<groupId>commons-collections</groupId>
+					<artifactId>commons-collections</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
@@ -172,6 +188,13 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>mongodb</artifactId>
+			<exclusions>
+				<!--excluded to remove vulnerability-->
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-compress</artifactId>
+				</exclusion>
+			</exclusions>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -352,6 +375,26 @@
 								<source>src/feature/java</source>
 							</sources>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>${dependency-check-plugin.version}</version>
+				<configuration>
+					<formats>
+						<format>html</format>
+					</formats>
+					<suppressionFiles>
+						<suppressionFile>suppress.xml</suppressionFile>
+					</suppressionFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
