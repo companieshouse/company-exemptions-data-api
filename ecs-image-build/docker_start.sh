@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # Start script for company-exemptions-data-api
 
 PORT=8080
