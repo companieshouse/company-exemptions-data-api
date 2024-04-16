@@ -19,14 +19,14 @@ import uk.gov.companieshouse.exemptions.util.LocalDateSerializer;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
-import static uk.gov.companieshouse.exemptions.ExemptionsApplication.NAMESPACE;
+import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
 
 @Configuration
 public class Config {
 
     @Bean
     public Logger logger() {
-        return LoggerFactory.getLogger(NAMESPACE);
+        return LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
     }
 
     @Bean
