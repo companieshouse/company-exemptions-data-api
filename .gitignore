@@ -39,3 +39,7 @@ target/
 settings.json
 
 company-exemptions-data-api.jar
+
+# Vim files
+*.vim
+.*.sw?

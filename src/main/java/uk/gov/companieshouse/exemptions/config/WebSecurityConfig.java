@@ -1,7 +1,10 @@
 package uk.gov.companieshouse.exemptions.config;
 
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,6 +13,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import uk.gov.companieshouse.api.filter.CustomCorsFilter;
 import uk.gov.companieshouse.exemptions.service.AuthenticationFilter;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -25,6 +30,8 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, Logger logger) throws Exception {
         http.httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+                .addFilterBefore(new CustomCorsFilter(externalMethods()), CsrfFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -39,5 +46,10 @@ public class WebSecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring().requestMatchers("/company-exemptions/healthcheck");
+    }
+
+    @Bean
+    public List<String> externalMethods() {
+        return Arrays.asList(HttpMethod.GET.name());
     }
 }
