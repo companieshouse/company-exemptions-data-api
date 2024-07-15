@@ -1,13 +1,17 @@
 package uk.gov.companieshouse.exemptions.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -22,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -261,4 +266,83 @@ class ExemptionsControllerTest {
         request.setExternalData(new ExemptionsUpdateData());
         return request;
     }
+
+    @Test
+    @DisplayName("Successful options company exemptions request - CORS")
+    void optionsCompanyExemptionsCORS() throws Exception {
+
+        MvcResult result = mockMvc.perform(options(GET_URI)
+                .contentType(APPLICATION_JSON)
+                .header("Origin", "")
+                )
+            .andExpect(status().isNoContent())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_MAX_AGE))
+            .andReturn();
+    }
+
+    @Test
+    @DisplayName("Successful get company exemptions request - CORS")
+    void getCompanyExemptionsCORS() throws Exception {
+        CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+        CompanyExemptions data = new CompanyExemptions();
+        document.setData(data);
+
+        when(exemptionsService.getCompanyExemptions(any())).thenReturn(Optional.of(document));
+
+        MvcResult result = mockMvc.perform(get(GET_URI)
+                .contentType(APPLICATION_JSON)
+                .header("Origin", "")
+                .header("ERIC-Allowed-Origin", "some-origin")
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "oauth2"))
+            .andExpect(status().isOk())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")))
+            .andReturn();
+
+        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
+    }
+
+    @Test
+    @DisplayName("Forbidden get company exemptions request - CORS")
+    void getCompanyExemptionsForbiddenCORS() throws Exception {
+
+        mockMvc.perform(get(GET_URI)
+                .contentType(APPLICATION_JSON)
+                .header("Origin", "")
+                .header("ERIC-Allowed-Origin", "")
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "oauth2"))
+            .andExpect(status().isForbidden())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")))
+            .andExpect(content().string(""))
+            .andReturn();
+    }
+
+    @Test
+    @DisplayName("Forbidden upsert request")
+    void upsertCompanyExemptionsForbidden() throws Exception {
+        when(exemptionsService.upsertCompanyExemptions(any(), any(), any())).thenReturn(ServiceStatus.SUCCESS);
+
+        mockMvc.perform(put(URI)
+                .contentType(APPLICATION_JSON)
+                .header("Origin", "")
+                .header("ERIC-Allowed-Origin", "some-origin")
+                .header("x-request-id", "5342342")
+                .header("ERIC-Identity", "Test-Identity")
+                .header("ERIC-Identity-Type", "Key")
+                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+            .andExpect(status().isForbidden())
+            .andExpect(header().exists(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS))
+            .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, containsString("GET")))
+            .andExpect(content().string(""))
+            .andReturn();
+    }
+
 }
