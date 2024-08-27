@@ -42,10 +42,6 @@ test-unit:
 test-integration:
 	mvn integration-test verify -Dskip.unit.tests=true failsafe:verify
 
-.PHONY: security-check
-security-check:
-	mvn compile org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=11 -DassemblyAnalyzerEnabled=false
-
 .PHONY: package
 package:
 ifndef version
