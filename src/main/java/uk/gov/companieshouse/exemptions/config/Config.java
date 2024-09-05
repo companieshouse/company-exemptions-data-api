@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.function.Supplier;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +30,8 @@ public class Config {
     }
 
     @Bean
-    public Supplier<String> offsetDateTimeGenerator() {
-        return () -> String.valueOf(OffsetDateTime.now());
+    public Supplier<Instant> instantSupplier() {
+        return Instant::now;
     }
 
     /**

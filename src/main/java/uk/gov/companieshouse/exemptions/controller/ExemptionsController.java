@@ -52,7 +52,7 @@ public class ExemptionsController {
     public ResponseEntity<CompanyExemptions> companyExemptionsGet(
             @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber) {
-        logger.info(String.format("Getting company exemptions for company number %s", companyNumber));
+        logger.info(String.format("KCP - Getting company exemptions for company number %s", companyNumber));
 
         Optional<CompanyExemptionsDocument> document = service.getCompanyExemptions(companyNumber);
 
