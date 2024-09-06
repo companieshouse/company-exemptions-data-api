@@ -3,6 +3,8 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +23,11 @@ import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 class ResourceChangedRequestMapperTest {
 
     private static final String EXPECTED_CONTEXT_ID = "35234234";
-    private static final String DATE = "date";
+    private static final Instant UPDATED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final String PUBLISHED_AT = DateUtils.publishedAtString(UPDATED_AT);
 
     @Mock
-    private Supplier<String> timestampGenerator;
+    private Supplier<Instant> instantSupplier;
 
     @InjectMocks
     private ResourceChangedRequestMapper mapper;
@@ -33,7 +36,7 @@ class ResourceChangedRequestMapperTest {
     @MethodSource("resourceChangedScenarios")
     void testMapper(ResourceChangedTestArgument argument) {
         // given
-        when(timestampGenerator.get()).thenReturn(DATE);
+        when(instantSupplier.get()).thenReturn(UPDATED_AT);
 
         // when
         ChangedResource actual = mapper.mapChangedResource(argument.request());
@@ -50,7 +53,7 @@ class ResourceChangedRequestMapperTest {
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
                         .withEventType("changed")
-                        .withEventPublishedAt(DATE)
+                        .withEventPublishedAt(PUBLISHED_AT)
                         .build(),
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", null, null))
@@ -58,7 +61,7 @@ class ResourceChangedRequestMapperTest {
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
                         .withEventType("changed")
-                        .withEventPublishedAt(DATE)
+                        .withEventPublishedAt(PUBLISHED_AT)
                         .build(),
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", new CompanyExemptions(), true))
@@ -67,7 +70,7 @@ class ResourceChangedRequestMapperTest {
                         .withResourceKind("company-exemptions")
                         .withEventType("deleted")
                         .withDeletedData(new CompanyExemptions())
-                        .withEventPublishedAt(DATE)
+                        .withEventPublishedAt(PUBLISHED_AT)
                         .build()
         );
     }
