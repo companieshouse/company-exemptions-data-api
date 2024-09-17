@@ -38,11 +38,11 @@ public class ExemptionsServiceImpl implements ExemptionsService {
         try {
             Optional<CompanyExemptionsDocument> existingDocument = repository.findById(companyNumber);
 
-            // If the document does not exist OR if the delta_at in the request is after the delta_at on the document
+            // If the document does not exist OR if the delta_at in the request is not before the delta_at on the document
             if (existingDocument.isEmpty() ||
                     StringUtils.isBlank(existingDocument.get().getDeltaAt()) ||
-                    requestBody.getInternalData().getDeltaAt()
-                            .isAfter(ZonedDateTime.parse(existingDocument.get().getDeltaAt(), FORMATTER)
+                    !requestBody.getInternalData().getDeltaAt()
+                            .isBefore(ZonedDateTime.parse(existingDocument.get().getDeltaAt(), FORMATTER)
                                     .toOffsetDateTime())) {
                 CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
 
