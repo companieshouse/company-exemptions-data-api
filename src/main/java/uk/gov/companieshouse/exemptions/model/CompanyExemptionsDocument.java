@@ -83,4 +83,15 @@ public class CompanyExemptionsDocument {
     public int hashCode() {
         return Objects.hash(id, created, data, deltaAt, updated);
     }
+
+    @Override
+    public String toString() {
+        return "CompanyExemptionsDocument{" +
+                "id='" + id + '\'' +
+                ", created=" + created +
+                ", data=" + data +
+                ", deltaAt='" + deltaAt + '\'' +
+                ", updated=" + updated +
+                '}';
+    }
 }
