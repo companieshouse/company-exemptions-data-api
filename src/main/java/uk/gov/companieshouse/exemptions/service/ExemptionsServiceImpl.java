@@ -57,10 +57,8 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         companyNumber,
                         contextId));
 
-                ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
-                logger.info(String.format("ChsKafka api CHANGED invoked for context id: %s and company number: %s",
-                        contextId,
-                        companyNumber));
+                ServiceStatus serviceStatus = exemptionsApiService
+                        .invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
 
                 if (!ServiceStatus.SUCCESS.equals(serviceStatus)) {
                     logger.info(String.format("Chs Kafka API call FAILED for context id: %s", contextId));
