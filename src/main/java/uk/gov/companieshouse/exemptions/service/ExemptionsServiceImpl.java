@@ -38,11 +38,11 @@ public class ExemptionsServiceImpl implements ExemptionsService {
         try {
             Optional<CompanyExemptionsDocument> existingDocument = repository.findById(companyNumber);
 
-            // If the document does not exist OR if the delta_at in the request is after the delta_at on the document
+            // If the document does not exist OR if the delta_at in the request is not before the delta_at on the document
             if (existingDocument.isEmpty() ||
                     StringUtils.isBlank(existingDocument.get().getDeltaAt()) ||
-                    requestBody.getInternalData().getDeltaAt()
-                            .isAfter(ZonedDateTime.parse(existingDocument.get().getDeltaAt(), FORMATTER)
+                    !requestBody.getInternalData().getDeltaAt()
+                            .isBefore(ZonedDateTime.parse(existingDocument.get().getDeltaAt(), FORMATTER)
                                     .toOffsetDateTime())) {
                 CompanyExemptionsDocument document = mapper.map(companyNumber, requestBody);
 
@@ -52,16 +52,20 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         .ifPresentOrElse(document::setCreated,
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().at())));
 
-                ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
-                logger.info(String.format("ChsKafka api CHANGED invoked updated successfully for context id: %s and company number: %s",
-                        contextId,
-                        companyNumber));
+                repository.save(document);
+                logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
+                        companyNumber,
+                        contextId));
 
-                if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
-                    repository.save(document);
-                    logger.info(String.format("Company exemptions for company number: %s updated in MongoDb for context id: %s",
-                            companyNumber,
-                            contextId));
+                ServiceStatus serviceStatus = exemptionsApiService
+                        .invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+
+                if (!ServiceStatus.SUCCESS.equals(serviceStatus)) {
+                    logger.info(String.format("Chs Kafka API call FAILED for context id: %s", contextId));
+                } else {
+                    logger.info(String.format("ChsKafka api CHANGED invoked SUCCESSFULLY for context id: %s and company number: %s",
+                            contextId,
+                            companyNumber));
                 }
                 return serviceStatus;
             } else {

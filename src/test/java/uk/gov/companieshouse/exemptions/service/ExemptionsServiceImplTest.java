@@ -154,14 +154,13 @@ class ExemptionsServiceImplTest {
     void saveToRepositoryError() {
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
         when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
         when(repository.save(document)).thenThrow(ServiceUnavailableException.class);
 
         ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
         assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
         verify(repository).save(document);
+        verifyNoInteractions(exemptionsApiService);
     }
 
     @Test
@@ -178,8 +177,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).save(document);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -196,8 +195,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).save(document);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test

@@ -255,6 +255,11 @@ public class ExemptionsSteps {
         assertThat(exemptionsRepository.findById(companyNumber)).isEmpty();
     }
 
+    @And("the resource has been persisted for {string}")
+    public void verifyResourceHasBeenPersistedInTheDatabase(String companyNumber) {
+        assertThat(exemptionsRepository.findById(companyNumber)).isNotNull();
+    }
+
     @When("a DELETE request is sent without ERIC headers for {string}")
     public void deleteRequestSentWithoutEricHeaders(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
