@@ -137,6 +137,12 @@
 			<version>${spring-web.version}</version>
 		</dependency>
 		<dependency>
+			<!-- Overriding spring-webmvc version to remove vulnerability -->
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring-web.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 			<version>${spring-security-config.version}</version>
