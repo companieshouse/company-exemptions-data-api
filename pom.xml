@@ -15,9 +15,8 @@
 		<java.version>21</java.version>
 
 		<maven-build-helper-plugin.version>3.5.0</maven-build-helper-plugin.version>
-		<spring-boot-dependencies.version>3.3.2</spring-boot-dependencies.version>
-		<spring-boot-maven-plugin.version>3.3.2</spring-boot-maven-plugin.version>
-		<spring-web.version>6.1.12</spring-web.version>
+		<spring-boot-dependencies.version>3.3.3</spring-boot-dependencies.version>
+		<spring-boot-maven-plugin.version>3.3.3</spring-boot-maven-plugin.version>
 		<spring-security-config.version>6.3.3</spring-security-config.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
@@ -129,18 +128,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 			<version>${spring-boot-dependencies.version}</version>
-		</dependency>
-		<dependency>
-			<!-- Overriding spring-web version to remove vulnerability -->
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring-web.version}</version>
-		</dependency>
-		<dependency>
-			<!-- Overriding spring-webmvc version to remove vulnerability -->
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${spring-web.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
