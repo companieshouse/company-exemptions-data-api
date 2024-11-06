@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.exemptions.config;
 
+import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,8 +20,6 @@ import uk.gov.companieshouse.exemptions.util.LocalDateDeSerializer;
 import uk.gov.companieshouse.exemptions.util.LocalDateSerializer;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
-
-import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
 
 @Configuration
 public class Config {

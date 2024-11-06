@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.exemptions.controller;
 
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
-import uk.gov.companieshouse.exemptions.service.ExemptionsService;
 import uk.gov.companieshouse.exemptions.model.ServiceStatus;
+import uk.gov.companieshouse.exemptions.service.ExemptionsService;
 import uk.gov.companieshouse.logging.Logger;
-
-import java.util.Optional;
 
 @RestController
 public class ExemptionsController {
@@ -30,8 +29,8 @@ public class ExemptionsController {
 
     @PutMapping("/company-exemptions/{company_number}/internal")
     public ResponseEntity<Void> companyExemptionsUpsert(
-            @RequestHeader("x-request-id") String contextId,
             @PathVariable("company_number") String companyNumber,
+            @RequestHeader("x-request-id") String contextId,
             @RequestBody InternalExemptionsApi requestBody) {
         logger.info(String.format(
                 "Processing company exemptions information for company number %s",
@@ -50,8 +49,8 @@ public class ExemptionsController {
 
     @GetMapping("/company/{company_number}/exemptions")
     public ResponseEntity<CompanyExemptions> companyExemptionsGet(
-            @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
+            @PathVariable("company_number") String companyNumber,
+            @RequestHeader("x-request-id") String contextId) {
         logger.info(String.format("Getting company exemptions for company number %s", companyNumber));
 
         Optional<CompanyExemptionsDocument> document = service.getCompanyExemptions(companyNumber);
@@ -62,11 +61,12 @@ public class ExemptionsController {
 
     @DeleteMapping("/company-exemptions/{company_number}/internal")
     public ResponseEntity<CompanyExemptionsDocument> companyExemptionsDelete(
+            @PathVariable("company_number") String companyNumber,
             @RequestHeader("x-request-id") String contextId,
-            @PathVariable("company_number") String companyNumber) {
+            @RequestHeader("X-DELTA-AT") String deltaAt) {
         logger.info(String.format("Deleting company exemptions for company number %s", companyNumber));
 
-        ServiceStatus serviceStatus = service.deleteCompanyExemptions(contextId, companyNumber);
+        ServiceStatus serviceStatus = service.deleteCompanyExemptions(contextId, companyNumber, deltaAt);
 
         if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();

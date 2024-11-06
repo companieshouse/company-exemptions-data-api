@@ -23,8 +23,6 @@ import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResource
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.model.ServiceStatus;
-import uk.gov.companieshouse.exemptions.service.ApiClientService;
-import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 import uk.gov.companieshouse.logging.Logger;
 

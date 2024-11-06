@@ -17,7 +17,6 @@ import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 
 @ExtendWith(MockitoExtension.class)
 class ResourceChangedRequestMapperTest {

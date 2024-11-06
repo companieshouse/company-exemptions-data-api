@@ -1,5 +1,22 @@
 package uk.gov.companieshouse.exemptions.util;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
+import static uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem.ExemptionTypeEnum.DISCLOSURE_TRANSPARENCY_RULES_CHAPTER_FIVE_APPLIES;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsSharesAdmittedOnMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_SHARES_ADMITTED_ON_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_EU_REGULATED_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -18,25 +35,6 @@ import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarke
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem;
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
-import uk.gov.companieshouse.exemptions.util.ExemptionsMapper;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
-import static uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem.ExemptionTypeEnum.DISCLOSURE_TRANSPARENCY_RULES_CHAPTER_FIVE_APPLIES;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsSharesAdmittedOnMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_SHARES_ADMITTED_ON_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_EU_REGULATED_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
 
 @ExtendWith(MockitoExtension.class)
 public class ExemptionsMapperTest {

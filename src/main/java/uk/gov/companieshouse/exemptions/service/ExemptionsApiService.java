@@ -7,8 +7,8 @@ import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 import uk.gov.companieshouse.exemptions.model.ServiceStatus;
+import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 import uk.gov.companieshouse.logging.Logger;
 
 @Service

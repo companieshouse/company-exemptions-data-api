@@ -92,7 +92,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     }
 
     @Override
-    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber) {
+    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber, String deltaAt) {
         try {
             Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
             if (document.isEmpty()) {

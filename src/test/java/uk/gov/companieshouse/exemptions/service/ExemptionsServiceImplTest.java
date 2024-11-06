@@ -1,6 +1,21 @@
 package uk.gov.companieshouse.exemptions.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,33 +28,19 @@ import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
-import uk.gov.companieshouse.exemptions.model.*;
-import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
-import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.service.ExemptionsServiceImpl;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
+import uk.gov.companieshouse.exemptions.model.Created;
+import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
+import uk.gov.companieshouse.exemptions.model.ServiceStatus;
+import uk.gov.companieshouse.exemptions.model.Updated;
 import uk.gov.companieshouse.exemptions.util.ExemptionsMapper;
 import uk.gov.companieshouse.logging.Logger;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExemptionsServiceImplTest {
 
     private static final String COMPANY_NUMBER = "12345678";
+    private static final String DELTA_AT = "20240219123045999999";
 
     @Mock
     private ExemptionsRepository repository;
@@ -243,7 +244,7 @@ class ExemptionsServiceImplTest {
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.SUCCESS, actual);
@@ -259,7 +260,7 @@ class ExemptionsServiceImplTest {
         when(repository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.CLIENT_ERROR, actual);
@@ -277,7 +278,7 @@ class ExemptionsServiceImplTest {
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SERVER_ERROR);
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
@@ -295,7 +296,7 @@ class ExemptionsServiceImplTest {
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
@@ -311,7 +312,7 @@ class ExemptionsServiceImplTest {
         when(repository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
@@ -330,7 +331,7 @@ class ExemptionsServiceImplTest {
         doThrow(ServiceUnavailableException.class).when(repository).deleteById(any());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);

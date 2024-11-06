@@ -3,21 +3,23 @@ package uk.gov.companieshouse.exemptions.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,14 +39,11 @@ import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.exemptions.config.ExceptionHandlerConfig;
 import uk.gov.companieshouse.exemptions.config.WebSecurityConfig;
-import uk.gov.companieshouse.exemptions.controller.ExemptionsController;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.service.ExemptionsService;
 import uk.gov.companieshouse.logging.Logger;
-
-import java.util.Optional;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = ExemptionsController.class)
@@ -53,6 +52,7 @@ import java.util.Optional;
 class ExemptionsControllerTest {
     private static final String URI = "/company-exemptions/12345678/internal";
     private static final String GET_URI = "/company/12345678/exemptions";
+    private static final String DELTA_AT = "20240219123045999999";
 
     @Autowired
     private MockMvc mockMvc;
@@ -221,42 +221,48 @@ class ExemptionsControllerTest {
     @Test
     @DisplayName("Successful delete company exemptions request")
     void deleteCompanyExemptions() throws Exception {
-        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SUCCESS);
+        when(exemptionsService.deleteCompanyExemptions(anyString(), anyString(), anyString()))
+                .thenReturn(ServiceStatus.SUCCESS);
 
         mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
-                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("X-DELTA-AT", DELTA_AT))
                 .andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Server error delete request")
     void deleteCompanyExemptionsServerError() throws Exception {
-        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.SERVER_ERROR);
+        when(exemptionsService.deleteCompanyExemptions(anyString(), anyString(), anyString()))
+                .thenReturn(ServiceStatus.SERVER_ERROR);
 
         mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
-                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("X-DELTA-AT", DELTA_AT))
                 .andExpect(status().isServiceUnavailable());
     }
 
     @Test
     @DisplayName("Not found delete request")
     void deleteCompanyExemptionsNotFound() throws Exception {
-        when(exemptionsService.deleteCompanyExemptions(any(), any())).thenReturn(ServiceStatus.CLIENT_ERROR);
+        when(exemptionsService.deleteCompanyExemptions(anyString(), anyString(), anyString()))
+                .thenReturn(ServiceStatus.CLIENT_ERROR);
 
         mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
                 .header("ERIC-Identity-Type", "Key")
-                .header("ERIC-Authorised-Key-Privileges", "internal-app"))
+                .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                .header("X-DELTA-AT", DELTA_AT))
                 .andExpect(status().isNotFound());
     }
 

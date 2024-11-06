@@ -18,7 +18,6 @@ import io.cucumber.java.en.When;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -29,11 +28,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.CucumberContext;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
+import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
 
 public class ExemptionsSteps {
@@ -227,6 +226,7 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", "20240219123045999999");
 
         CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
 
