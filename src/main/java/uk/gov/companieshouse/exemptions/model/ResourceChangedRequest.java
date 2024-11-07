@@ -1,8 +1,10 @@
 package uk.gov.companieshouse.exemptions.model;
 
 import java.util.Objects;
+import java.util.Optional;
 
-public record ResourceChangedRequest(String contextId, String companyNumber, Object exemptionsData, Boolean isDelete) {
+public record ResourceChangedRequest(String contextId, String companyNumber, Optional<CompanyExemptionsDocument> document, Boolean isDelete) {
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -12,14 +14,13 @@ public record ResourceChangedRequest(String contextId, String companyNumber, Obj
             return false;
         }
         ResourceChangedRequest that = (ResourceChangedRequest) o;
-        return Objects.equals(contextId, that.contextId) &&
-                Objects.equals(companyNumber, that.companyNumber) &&
-                Objects.equals(exemptionsData, that.exemptionsData) &&
-                Objects.equals(isDelete, that.isDelete);
+        return Objects.equals(contextId, that.contextId) && Objects.equals(companyNumber,
+                that.companyNumber) && Objects.equals(document, that.document) && Objects.equals(
+                isDelete, that.isDelete);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contextId, companyNumber, exemptionsData, isDelete);
+        return Objects.hash(contextId, companyNumber, document, isDelete);
     }
 }

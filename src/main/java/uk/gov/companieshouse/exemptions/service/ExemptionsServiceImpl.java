@@ -1,13 +1,18 @@
 package uk.gov.companieshouse.exemptions.service;
 
+import static uk.gov.companieshouse.exemptions.util.DateUtils.isDeltaStale;
+
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
+import uk.gov.companieshouse.exemptions.exception.BadRequestException;
+import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.Created;
@@ -18,8 +23,8 @@ import uk.gov.companieshouse.logging.Logger;
 
 @Service
 public class ExemptionsServiceImpl implements ExemptionsService {
-
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").withZone(ZoneId.of("Z"));
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+            .withZone(ZoneId.of("Z"));
 
     private final Logger logger;
     private final ExemptionsRepository repository;
@@ -92,21 +97,29 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     }
 
     @Override
-    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber, String deltaAt) {
+    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber, String requestDeltaAt) {
+        if (StringUtils.isBlank(requestDeltaAt)) {
+            logger.error("deltaAt field not present in request");
+            throw new BadRequestException("deltaAt field not present in request");
+        }
+
         try {
             Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
-            if (document.isEmpty()) {
-                logger.error(String.format("Company exemptions do not exist for company number %s", companyNumber));
-                return ServiceStatus.CLIENT_ERROR;
-            }
-
-            ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document.get().getData(), true));
-            logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
-
-            if (ServiceStatus.SUCCESS.equals(serviceStatus)) {
+            if (document.isPresent()) {
+                String existingDeltaAt = document.get().getDeltaAt();
+                if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
+                    logger.error("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]".formatted(
+                            requestDeltaAt, existingDeltaAt));
+                    throw new ConflictException("Stale delta for delete");
+                }
                 repository.deleteById(companyNumber);
                 logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
+            } else {
+                logger.error(String.format("Company exemptions do not exist for company number %s", companyNumber));
             }
+
+            ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document, true));
+            logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
             return serviceStatus;
         } catch (IllegalArgumentException ex) {
             logger.error("Error calling chs-kafka-api");

@@ -31,6 +31,7 @@ import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CucumberContext;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
+import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
@@ -79,7 +80,8 @@ public class ExemptionsSteps {
         companyExemptions.setDeltaAt(deltaAt);
 
         exemptionsRepository.save(companyExemptions);
-        CucumberContext.CONTEXT.set("exemptionsData", exemptionsData);
+        Optional<CompanyExemptionsDocument> document = Optional.of(companyExemptions);
+        CucumberContext.CONTEXT.set("exemptionsDocument", document);
     }
 
     @And("exemptions exists for company number {string}")
@@ -228,11 +230,39 @@ public class ExemptionsSteps {
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("X-DELTA-AT", "20240219123045999999");
 
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true)))
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
                 .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a delete request is sent after to the delete endpoint for {string}")
+    public void sendRequestToDeleteEndpointWhenDocDoesNotExist(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", "20240219123045999999");
+
+        Optional<CompanyExemptionsDocument> document = Optional.empty();
+        CucumberContext.CONTEXT.set("exemptionsDocument", document);
+
+        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
+                .thenReturn(SUCCESS);
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -243,10 +273,10 @@ public class ExemptionsSteps {
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true);
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
 
