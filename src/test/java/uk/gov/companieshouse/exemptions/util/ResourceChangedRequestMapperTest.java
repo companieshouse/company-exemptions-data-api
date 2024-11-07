@@ -4,7 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +19,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.api.exemptions.ExemptionItem;
+import uk.gov.companieshouse.api.exemptions.Exemptions;
+import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem;
+import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +55,8 @@ class ResourceChangedRequestMapperTest {
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
         return Stream.of(
                 ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", null, false))
+                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                                null, false))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
@@ -55,20 +64,22 @@ class ResourceChangedRequestMapperTest {
                         .withEventPublishedAt(PUBLISHED_AT)
                         .build(),
                 ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", null, null))
-                        .withContextId(EXPECTED_CONTEXT_ID)
-                        .withResourceUri("company/12345678/exemptions")
-                        .withResourceKind("company-exemptions")
-                        .withEventType("changed")
-                        .withEventPublishedAt(PUBLISHED_AT)
-                        .build(),
-                ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678", new CompanyExemptions(), true))
+                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                                Optional.empty(), true))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
                         .withEventType("deleted")
-                        .withDeletedData(new CompanyExemptions())
+                        .withEventPublishedAt(PUBLISHED_AT)
+                        .build(),
+                ResourceChangedTestArgument.builder()
+                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                                Optional.of(getCompanyExemptionsDocument()), true))
+                        .withContextId(EXPECTED_CONTEXT_ID)
+                        .withResourceUri("company/12345678/exemptions")
+                        .withResourceKind("company-exemptions")
+                        .withEventType("deleted")
+                        .withDeletedData(getExemptionsData())
                         .withEventPublishedAt(PUBLISHED_AT)
                         .build()
         );
@@ -142,5 +153,25 @@ class ResourceChangedRequestMapperTest {
             changedResource.setDeletedData(deletedData);
             return new ResourceChangedTestArgument(this.request, changedResource);
         }
+    }
+
+    private static CompanyExemptionsDocument getCompanyExemptionsDocument() {
+        CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+        document.setId("00006400");
+        document.setDeltaAt("20221012091025774312");
+        document.setData(getExemptionsData());
+        return document;
+    }
+
+    private static CompanyExemptions getExemptionsData() {
+        CompanyExemptions exemptionsData = new CompanyExemptions();
+        Exemptions exemptions = new Exemptions();
+        ExemptionItem exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
+        PscExemptAsTradingOnRegulatedMarketItem regulatedMarketItem =
+                new PscExemptAsTradingOnRegulatedMarketItem(Collections.singletonList(exemptionItem),
+                        ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET);
+        exemptions.setPscExemptAsTradingOnRegulatedMarket(regulatedMarketItem);
+        exemptionsData.setExemptions(exemptions);
+        return exemptionsData;
     }
 }

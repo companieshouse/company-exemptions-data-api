@@ -79,7 +79,8 @@ public class ExemptionsSteps {
         companyExemptions.setDeltaAt(deltaAt);
 
         exemptionsRepository.save(companyExemptions);
-        CucumberContext.CONTEXT.set("exemptionsData", exemptionsData);
+        Optional<CompanyExemptionsDocument> document = Optional.of(companyExemptions);
+        CucumberContext.CONTEXT.set("exemptionsDocument", document);
     }
 
     @And("exemptions exists for company number {string}")
@@ -228,10 +229,10 @@ public class ExemptionsSteps {
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("X-DELTA-AT", "20240219123045999999");
 
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true)))
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
                 .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
@@ -243,10 +244,10 @@ public class ExemptionsSteps {
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true);
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
 

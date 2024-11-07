@@ -60,7 +60,7 @@ public class ExemptionsController {
     }
 
     @DeleteMapping("/company-exemptions/{company_number}/internal")
-    public ResponseEntity<CompanyExemptionsDocument> companyExemptionsDelete(
+    public ResponseEntity<Void> companyExemptionsDelete(
             @PathVariable("company_number") String companyNumber,
             @RequestHeader("x-request-id") String contextId,
             @RequestHeader("X-DELTA-AT") String deltaAt) {
@@ -72,6 +72,10 @@ public class ExemptionsController {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
             return ResponseEntity.notFound().build();
+        } else if (serviceStatus.equals(ServiceStatus.REQUEST_ERROR)) {
+            return ResponseEntity.badRequest().build();
+        } else if (serviceStatus.equals(ServiceStatus.CONFLICT_ERROR)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         } else {
             return ResponseEntity.ok().build();
         }
