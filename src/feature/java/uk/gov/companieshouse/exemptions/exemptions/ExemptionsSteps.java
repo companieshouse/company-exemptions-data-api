@@ -242,6 +242,34 @@ public class ExemptionsSteps {
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
+    @When("a delete request is sent after to the delete endpoint for {string}")
+    public void sendRequestToDeleteEndpointWhenDocDoesNotExist(String companyNumber) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", "20240219123045999999");
+
+        Optional<CompanyExemptionsDocument> document = Optional.empty();
+        CucumberContext.CONTEXT.set("exemptionsDocument", document);
+
+        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
+                .thenReturn(SUCCESS);
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
         Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");

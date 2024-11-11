@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -27,7 +28,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
-import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.Created;
@@ -60,12 +60,13 @@ class ExemptionsServiceImplTest {
 
     private InternalExemptionsApi requestBody;
     private CompanyExemptionsDocument exemptionsDocument;
-    private Optional<CompanyExemptionsDocument> document;
     private CompanyExemptionsDocument existingDocument;
+    private Optional<CompanyExemptionsDocument> document;
 
     @BeforeEach
     public void setUp() {
-        OffsetDateTime date = OffsetDateTime.now();
+        OffsetDateTime date = OffsetDateTime.of(2023,1, 1,12,
+                0,0,0, ZoneOffset.UTC);
         requestBody = new InternalExemptionsApi();
         InternalData internal = new InternalData();
         internal.setDeltaAt(date);
@@ -73,7 +74,8 @@ class ExemptionsServiceImplTest {
         exemptionsDocument = new CompanyExemptionsDocument();
         exemptionsDocument.setUpdated(new Updated(LocalDateTime.now()));
         final DateTimeFormatter dateTimeFormatter =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+                        .withZone(ZoneId.of("Z"));
         String dateString = date.format(dateTimeFormatter);
         exemptionsDocument.setDeltaAt(dateString);
         existingDocument = new CompanyExemptionsDocument();
@@ -258,33 +260,34 @@ class ExemptionsServiceImplTest {
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions throws bad request exception when deltaAt is missing")
+    @DisplayName("Test call to delete company exemptions returns request error when deltaAt is missing")
     void deleteCompanyExemptionsBadRequest() {
         // given
 
         // when
-        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, null);
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, null);
 
         // then
-        assertThrows(BadRequestException.class, actual);
+        assertEquals(ServiceStatus.REQUEST_ERROR, actual);
         verifyNoInteractions(repository);
         verifyNoInteractions(exemptionsApiService);
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions when document not found returns client error")
+    @DisplayName("Test call to delete company exemptions when document not found returns success")
     void deleteCompanyExemptionsNotFound() {
         // given
         when(repository.findById(any())).thenReturn(Optional.empty());
+        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
 
         // when
         ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.CLIENT_ERROR, actual);
+        assertEquals(ServiceStatus.SUCCESS, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verifyNoInteractions(exemptionsApiService);
-        verifyNoMoreInteractions(repository);
+        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER,
+                Optional.empty(), true));
     }
 
     @Test
@@ -301,8 +304,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).deleteById(COMPANY_NUMBER);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document, true));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -319,8 +322,8 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
+        verify(repository).deleteById(COMPANY_NUMBER);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document, true));
-        verifyNoMoreInteractions(repository);
     }
 
     @Test
@@ -345,7 +348,6 @@ class ExemptionsServiceImplTest {
         // given
         exemptionsDocument.setData(new CompanyExemptions());
         when(repository.findById(any())).thenReturn(Optional.of(exemptionsDocument));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
         doThrow(ServiceUnavailableException.class).when(repository).deleteById(any());
 
         // when
@@ -354,7 +356,7 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.SERVER_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document, true));
         verify(repository).deleteById(COMPANY_NUMBER);
+        verifyNoInteractions(exemptionsApiService);
     }
 }

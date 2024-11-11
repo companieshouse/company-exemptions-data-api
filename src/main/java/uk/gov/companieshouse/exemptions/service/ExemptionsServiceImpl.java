@@ -2,7 +2,6 @@ package uk.gov.companieshouse.exemptions.service;
 
 import static uk.gov.companieshouse.exemptions.util.DateUtils.isDeltaStale;
 
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,8 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
-import uk.gov.companieshouse.exemptions.exception.BadRequestException;
-import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.Created;
