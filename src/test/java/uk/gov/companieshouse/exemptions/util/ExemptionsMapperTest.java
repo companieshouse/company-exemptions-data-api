@@ -17,9 +17,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
@@ -37,21 +37,21 @@ import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarke
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 
 @ExtendWith(MockitoExtension.class)
-public class ExemptionsMapperTest {
+class ExemptionsMapperTest {
 
     private static final String COMPANY_NUMBER = "123456789";
     private static final LocalDate DATE = LocalDate.of(2022, 11, 3);
 
     private ExemptionsMapper mapper;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mapper = new ExemptionsMapper();
     }
 
     @Test
     @DisplayName("Test should successfully map an InternalExemptionsApi to a CompanyExemptionsDocument")
-    public void map() {
+    void mapToCompanyExemptionsDocument() {
         // Given
         ExemptionsUpdateData external = new ExemptionsUpdateData();
         external.setExemptions(getExemptions());
@@ -82,7 +82,6 @@ public class ExemptionsMapperTest {
         assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().at().toEpochSecond(ZoneOffset.MIN) < 2);
     }
-
     private Exemptions getExemptions() {
         ExemptionItem exemptionItem = new ExemptionItem();
         exemptionItem.exemptFrom(DATE);

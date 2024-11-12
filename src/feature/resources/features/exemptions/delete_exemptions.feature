@@ -43,11 +43,11 @@ Feature: Deletes company exemption resource from the database
     And exemptions exists for company number "<company_number>"
     When a request is sent to the delete endpoint for "<company_number>"
     Then a response status code of 503 should be returned
-    And the exemptions "<exemptions>" for "<company_number>" exist in the database
+    And the resource does not exist in the database for "<company_number>"
 
     Examples:
-      | company_number | exemptions                    |
-      | 00006400       | retrieved_exemptions_resource |
+      | company_number |
+      | 00006400       |
 
   Scenario Outline: A DELETE request is sent without ERIC headers causing an unauthorised error
 

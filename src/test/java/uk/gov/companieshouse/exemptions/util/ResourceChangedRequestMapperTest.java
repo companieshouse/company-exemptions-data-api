@@ -35,7 +35,6 @@ class ResourceChangedRequestMapperTest {
 
     @Mock
     private Supplier<Instant> instantSupplier;
-
     @InjectMocks
     private ResourceChangedRequestMapper mapper;
 

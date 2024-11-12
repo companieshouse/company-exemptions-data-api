@@ -266,6 +266,38 @@ class ExemptionsControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Delete request returned request error")
+    void deleteCompanyExemptionsBadRequest() throws Exception {
+        when(exemptionsService.deleteCompanyExemptions(anyString(), anyString(), anyString()))
+                .thenReturn(ServiceStatus.REQUEST_ERROR);
+
+        mockMvc.perform(delete(URI)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .header("X-DELTA-AT", DELTA_AT))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Delete request returned conflict error")
+    void deleteCompanyExemptionsConflict() throws Exception {
+        when(exemptionsService.deleteCompanyExemptions(anyString(), anyString(), anyString()))
+                .thenReturn(ServiceStatus.CONFLICT_ERROR);
+
+        mockMvc.perform(delete(URI)
+                        .contentType(APPLICATION_JSON)
+                        .header("x-request-id", "5342342")
+                        .header("ERIC-Identity", "Test-Identity")
+                        .header("ERIC-Identity-Type", "Key")
+                        .header("ERIC-Authorised-Key-Privileges", "internal-app")
+                        .header("X-DELTA-AT", DELTA_AT))
+                .andExpect(status().isConflict());
+    }
+
     private InternalExemptionsApi getRequestBody() {
         InternalExemptionsApi request = new InternalExemptionsApi();
         request.setInternalData(new InternalData());

@@ -244,7 +244,6 @@ class ExemptionsServiceImplTest {
     @DisplayName("Test successful call to delete company exemptions")
     void deleteCompanyExemptions() {
         // given
-        exemptionsDocument.setData(new CompanyExemptions());
         when(repository.findById(any())).thenReturn(Optional.of(exemptionsDocument));
         when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
 
@@ -270,6 +269,23 @@ class ExemptionsServiceImplTest {
         // then
         assertEquals(ServiceStatus.REQUEST_ERROR, actual);
         verifyNoInteractions(repository);
+        verifyNoInteractions(exemptionsApiService);
+    }
+
+    @Test
+    @DisplayName("Test call to delete company exemptions returns conflict error when delta is stale")
+    void deleteCompanyExemptionsStaleDelta() {
+        existingDocument.setDeltaAt(DELTA_AT);
+
+        // given
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
+
+        // when
+        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER, "20230219123045999999");
+
+        // then
+        assertEquals(ServiceStatus.CONFLICT_ERROR, actual);
+        verify(repository).findById(COMPANY_NUMBER);
         verifyNoInteractions(exemptionsApiService);
     }
 
