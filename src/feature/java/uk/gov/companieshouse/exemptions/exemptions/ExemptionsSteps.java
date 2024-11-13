@@ -137,10 +137,6 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)))
-                    .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));*/
-
         String payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -168,11 +164,6 @@ public class ExemptionsSteps {
     @Given("the CHS Kafka API service is unavailable")
     public void ChsKafkaApiUnavailable() {
         doThrow(ServiceUnavailableException.class).when(exemptionsApiService).invokeChsKafkaApi(any());
-    }
-
-    @Given("CHS Kafka API Service is available")
-    public void ChsKafKaApiAvailable(){
-        //CucumberContext.CONTEXT.set("serviceStatus", 200);
     }
 
     @Given ("the exemptions database is unavailable")
@@ -230,10 +221,6 @@ public class ExemptionsSteps {
         headers.set("X-DELTA-AT", "20240219123045999999");
 
         Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
-
-        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
-                .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));*/
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);

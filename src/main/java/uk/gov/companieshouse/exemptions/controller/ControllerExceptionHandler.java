@@ -2,9 +2,11 @@ package uk.gov.companieshouse.exemptions.controller;
 
 import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
 
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -43,8 +45,9 @@ public class ControllerExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(value = {BadRequestException.class, MethodArgumentNotValidException.class})
-    public ResponseEntity<Void> handleMethodArgumentNotValidException(Exception ex) {
+    @ExceptionHandler(value = {BadRequestException.class, DateTimeParseException.class,
+            HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
+    public ResponseEntity<Void> handleRequestAndParseError(Exception ex) {
         LOGGER.error("Invalid request body", ex);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

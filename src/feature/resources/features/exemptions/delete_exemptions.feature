@@ -2,8 +2,7 @@ Feature: Deletes company exemption resource from the database
 
   Scenario Outline: Successfully deletes a company exemptions resource from Mongo
 
-    Given CHS Kafka API Service is available
-    And exemptions exists for company number "<company_number>"
+    Given exemptions exists for company number "<company_number>"
     When a request is sent to the delete endpoint for "<company_number>"
     Then a response status code of 200 should be returned
     And the CHS Kafka Api service is invoked for "<company_number>" for a delete
@@ -15,8 +14,7 @@ Feature: Deletes company exemption resource from the database
 
   Scenario Outline: 200 status code is returned when resource not found in Mongo
 
-    Given CHS Kafka API Service is available
-    And the resource does not exist in the database for "<company_number>"
+    Given the resource does not exist in the database for "<company_number>"
     When a delete request is sent after to the delete endpoint for "<company_number>"
     Then a response status code of 200 should be returned
     And the CHS Kafka Api service is invoked for "<company_number>" for a delete
@@ -27,8 +25,7 @@ Feature: Deletes company exemption resource from the database
 
   Scenario Outline: A DELETE request sent when Mongo is unavailable
 
-    Given CHS Kafka API Service is available
-    And the company exemptions database isn't available
+    Given the company exemptions database isn't available
     When a request is sent to the delete endpoint for "<company_number>"
     Then a response status code of 503 should be returned
     And the CHS Kafka API service is not invoked
