@@ -1,18 +1,18 @@
 package uk.gov.companieshouse.exemptions.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
 import java.util.function.Supplier;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.InternalApiClient;
@@ -21,8 +21,8 @@ import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
 import uk.gov.companieshouse.api.model.ApiResponse;
+import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -30,7 +30,7 @@ import uk.gov.companieshouse.logging.Logger;
 class ExemptionsApiServiceTest {
 
     @Mock
-    private ApiClientService apiClientService;
+    private Supplier<InternalApiClient> apiClientSupplier;
 
     @Mock
     private InternalApiClient internalApiClient;
@@ -48,9 +48,6 @@ class ExemptionsApiServiceTest {
     private Logger logger;
 
     @Mock
-    private Supplier<String> dateGenerator;
-
-    @Mock
     private ResourceChangedRequestMapper mapper;
 
     @Mock
@@ -59,63 +56,77 @@ class ExemptionsApiServiceTest {
     @Mock
     private ChangedResource changedResource;
 
-    @InjectMocks
     private ExemptionsApiService exemptionsApiService;
+
+    @BeforeEach
+    void setup() {
+        exemptionsApiService = new ExemptionsApiService(apiClientSupplier, logger, mapper);
+    }
 
     @Test
     @DisplayName("Test should successfully invoke chs-kafka-api")
     void invokeChsKafkaApi() throws ApiErrorResponseException {
-        when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
+        // given
+        when(apiClientSupplier.get()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
         when(mapper.mapChangedResource(resourceChangedRequest)).thenReturn(changedResource);
 
-        ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
+        // when
+        exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
 
-        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
-
-        verify(apiClientService).getInternalApiClient();
+        // then
+        verify(apiClientSupplier).get();
         verify(internalApiClient).privateChangedResourceHandler();
         verify(privateChangedResourceHandler).postChangedResource("/private/resource-changed", changedResource);
         verify(changedResourcePost).execute();
     }
 
     @Test
-    @DisplayName("Test should handle a service unavailable exception when response code is HTTP 503")
+    @DisplayName("Throw service unavailable exception when response code is HTTP 503")
     void invokeChsKafkaApi503() throws ApiErrorResponseException {
+        // given
         setupExceptionScenario(503, "Service Unavailable");
 
-        ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
+        // when
+        Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
 
-        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
+        // then
+        assertThrows(ServiceUnavailableException.class, actual);
         verifyExceptionScenario();
     }
 
     @Test
-    @DisplayName("Test should handle a service unavailable exception when response code is HTTP 500")
+    @DisplayName("Throw service unavailable exception when response code is HTTP 500")
     void invokeChsKafkaApi500() throws ApiErrorResponseException {
+        // given
         setupExceptionScenario(500, "Internal Service Error");
 
-        ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
+        // when
+        Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
 
-        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
+        // then
+        assertThrows(ServiceUnavailableException.class, actual);
         verifyExceptionScenario();
     }
 
     @Test
-    @DisplayName("Test should handle a service unavailable exception when response code is HTTP 200 with errors")
+    @DisplayName("Throw service unavailable exception when response code is HTTP 200 with errors")
     void invokeChsKafkaApi200Errors() throws ApiErrorResponseException {
+        // given
         setupExceptionScenario(200, "");
 
-        ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
+        // when
+        Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
 
-        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
+        // then
+        assertThrows(ServiceUnavailableException.class, actual);
         verifyExceptionScenario();
     }
 
     private void setupExceptionScenario(int statusCode, String statusMessage) throws ApiErrorResponseException {
-        when(apiClientService.getInternalApiClient()).thenReturn(internalApiClient);
+        when(apiClientSupplier.get()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(mapper.mapChangedResource(resourceChangedRequest)).thenReturn(changedResource);
@@ -128,9 +139,9 @@ class ExemptionsApiServiceTest {
     }
 
     private void verifyExceptionScenario() throws ApiErrorResponseException {
-        verify(apiClientService, times(1)).getInternalApiClient();
-        verify(internalApiClient, times(1)).privateChangedResourceHandler();
-        verify(privateChangedResourceHandler, times(1)).postChangedResource("/private/resource-changed", changedResource);
-        verify(changedResourcePost, times(1)).execute();
+        verify(apiClientSupplier).get();
+        verify(internalApiClient).privateChangedResourceHandler();
+        verify(privateChangedResourceHandler).postChangedResource("/private/resource-changed", changedResource);
+        verify(changedResourcePost).execute();
     }
 }

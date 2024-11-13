@@ -2,12 +2,11 @@ package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
-import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SERVER_ERROR;
-import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SUCCESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
@@ -29,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CucumberContext;
+import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
@@ -137,9 +137,9 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)))
-                    .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
+                    .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));*/
 
         String payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
@@ -167,12 +167,12 @@ public class ExemptionsSteps {
 
     @Given("the CHS Kafka API service is unavailable")
     public void ChsKafkaApiUnavailable() {
-        CucumberContext.CONTEXT.set("serviceStatus", SERVER_ERROR);
+        doThrow(ServiceUnavailableException.class).when(exemptionsApiService).invokeChsKafkaApi(any());
     }
 
     @Given("CHS Kafka API Service is available")
     public void ChsKafKaApiAvailable(){
-        CucumberContext.CONTEXT.set("serviceStatus", SUCCESS);
+        //CucumberContext.CONTEXT.set("serviceStatus", 200);
     }
 
     @Given ("the exemptions database is unavailable")
@@ -231,9 +231,9 @@ public class ExemptionsSteps {
 
         Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
-                .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
+                .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));*/
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -259,9 +259,9 @@ public class ExemptionsSteps {
         Optional<CompanyExemptionsDocument> document = Optional.empty();
         CucumberContext.CONTEXT.set("exemptionsDocument", document);
 
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
+        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
-                .thenReturn(SUCCESS);
+                .thenReturn(SUCCESS);*/
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);

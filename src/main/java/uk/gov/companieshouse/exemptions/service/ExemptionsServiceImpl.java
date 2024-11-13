@@ -9,12 +9,15 @@ import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
+import uk.gov.companieshouse.exemptions.exception.BadRequestException;
+import uk.gov.companieshouse.exemptions.exception.ConflictException;
+import uk.gov.companieshouse.exemptions.exception.NotFoundException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.Created;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.util.ExemptionsMapper;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -36,7 +39,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     }
 
     @Override
-    public ServiceStatus upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
+    public void upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody) {
         try {
             Optional<CompanyExemptionsDocument> existingDocument = repository.findById(companyNumber);
 
@@ -59,34 +62,28 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                         companyNumber,
                         contextId));
 
-                ServiceStatus serviceStatus = exemptionsApiService
-                        .invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
-
-                if (!ServiceStatus.SUCCESS.equals(serviceStatus)) {
-                    logger.info(String.format("Chs Kafka API call FAILED for context id: %s", contextId));
-                } else {
-                    logger.info(String.format("ChsKafka api CHANGED invoked SUCCESSFULLY for context id: %s and company number: %s",
-                            contextId,
-                            companyNumber));
-                }
-                return serviceStatus;
+                exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, null, false));
+                logger.info(String.format("ChsKafka api CHANGED invoked SUCCESSFULLY for context id: %s and company number: %s",
+                        contextId, companyNumber));
             } else {
                 logger.info(String.format("Record for company %s not persisted as it is not the latest record.", companyNumber));
-                return ServiceStatus.CLIENT_ERROR;
+                throw new ConflictException("Record not persisted as it is not the latest record");
             }
         } catch (IllegalArgumentException ex) {
             logger.error("Illegal argument exception caught when processing upsert", ex);
-            return ServiceStatus.SERVER_ERROR;
+            throw new BadRequestException("Illegal argument exception caught when processing upsert");
         } catch (DataAccessException ex) {
             logger.error("Error connecting to MongoDB");
-            return ServiceStatus.SERVER_ERROR;
+            throw new ServiceUnavailableException("Error connecting to MongoDB");
         }
     }
 
     @Override
-    public Optional<CompanyExemptionsDocument> getCompanyExemptions(String companyNumber) {
+    public CompanyExemptions getCompanyExemptions(String companyNumber) {
         try {
-            return repository.findById(companyNumber);
+            return repository.findById(companyNumber).map(CompanyExemptionsDocument::getData)
+                    .orElseThrow(() -> new NotFoundException(String.format(
+                            "Exemptions does not exist for company: %s ", companyNumber)));
         } catch (DataAccessException ex) {
             logger.error("Failed to connect to MongoDb", ex);
             throw new ServiceUnavailableException("Data access exception thrown when calling Mongo Repository");
@@ -94,10 +91,10 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     }
 
     @Override
-    public ServiceStatus deleteCompanyExemptions(String contextId, String companyNumber, String requestDeltaAt) {
+    public void deleteCompanyExemptions(String contextId, String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
             logger.error("deltaAt missing from delete request");
-            return ServiceStatus.REQUEST_ERROR;
+            throw new BadRequestException("deltaAt missing from delete request");
         }
         try {
             Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
@@ -106,7 +103,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
                     logger.error(String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
                             requestDeltaAt, existingDeltaAt));
-                    return ServiceStatus.CONFLICT_ERROR;
+                    throw new ConflictException("Stale delta received.");
                 }
 
                 repository.deleteById(companyNumber);
@@ -115,16 +112,14 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 logger.error(String.format("Company exemptions do not exist for company number %s", companyNumber));
             }
 
-            ServiceStatus serviceStatus = exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document, true));
+            exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document, true));
             logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
-
-            return serviceStatus;
         } catch (IllegalArgumentException ex) {
             logger.error("Error calling chs-kafka-api");
-            return ServiceStatus.SERVER_ERROR;
+            throw new BadRequestException("Illegal argument exception caught when processing delete");
         } catch (DataAccessException ex) {
             logger.error("Error connecting to MongoDB");
-            return ServiceStatus.SERVER_ERROR;
+            throw new ServiceUnavailableException("Error connecting to MongoDB");
         }
     }
 }

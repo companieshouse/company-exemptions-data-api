@@ -1,8 +1,6 @@
 package uk.gov.companieshouse.exemptions.controller;
 
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,8 +11,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
-import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
-import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.service.ExemptionsService;
 import uk.gov.companieshouse.logging.Logger;
 
@@ -35,28 +31,15 @@ public class ExemptionsController {
         logger.info(String.format(
                 "Processing company exemptions information for company number %s",
                 companyNumber));
-
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
-
-        if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        }else {
-            return ResponseEntity.ok().build();
-        }
+        service.upsertCompanyExemptions(contextId, companyNumber, requestBody);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/company/{company_number}/exemptions")
     public ResponseEntity<CompanyExemptions> companyExemptionsGet(
-            @PathVariable("company_number") String companyNumber,
-            @RequestHeader("x-request-id") String contextId) {
+            @PathVariable("company_number") String companyNumber) {
         logger.info(String.format("Getting company exemptions for company number %s", companyNumber));
-
-        Optional<CompanyExemptionsDocument> document = service.getCompanyExemptions(companyNumber);
-
-        return document.map(companyExemptionsDocument -> ResponseEntity.ok().body(companyExemptionsDocument.getData()))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok().body(service.getCompanyExemptions(companyNumber));
     }
 
     @DeleteMapping("/company-exemptions/{company_number}/internal")
@@ -65,19 +48,7 @@ public class ExemptionsController {
             @RequestHeader("x-request-id") String contextId,
             @RequestHeader("X-DELTA-AT") String deltaAt) {
         logger.info(String.format("Deleting company exemptions for company number %s", companyNumber));
-
-        ServiceStatus serviceStatus = service.deleteCompanyExemptions(contextId, companyNumber, deltaAt);
-
-        if (serviceStatus.equals(ServiceStatus.SERVER_ERROR)) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        } else if (serviceStatus.equals(ServiceStatus.CLIENT_ERROR)) {
-            return ResponseEntity.notFound().build();
-        } else if (serviceStatus.equals(ServiceStatus.REQUEST_ERROR)) {
-            return ResponseEntity.badRequest().build();
-        } else if (serviceStatus.equals(ServiceStatus.CONFLICT_ERROR)){
-            return ResponseEntity.status(HttpStatus.CONFLICT).build();
-        } else {
-            return ResponseEntity.ok().build();
-        }
+        service.deleteCompanyExemptions(contextId, companyNumber, deltaAt);
+        return ResponseEntity.ok().build();
     }
 }

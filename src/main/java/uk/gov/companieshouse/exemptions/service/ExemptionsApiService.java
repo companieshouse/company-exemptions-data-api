@@ -1,34 +1,28 @@
 package uk.gov.companieshouse.exemptions.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import java.util.function.Supplier;
+import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.InternalApiClient;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
+import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
-import uk.gov.companieshouse.exemptions.model.ServiceStatus;
 import uk.gov.companieshouse.exemptions.util.ResourceChangedRequestMapper;
 import uk.gov.companieshouse.logging.Logger;
 
-@Service
+@Component
 public class ExemptionsApiService {
-
     private static final String CHANGED_RESOURCE_URI = "/private/resource-changed";
     private final Logger logger;
-    private final String chsKafkaUrl;
-    private final ApiClientService apiClientService;
+    private final Supplier<InternalApiClient> apiClientSupplier;
     private final ResourceChangedRequestMapper mapper;
 
     /**
      * Invoke API.
      */
-    public ExemptionsApiService(@Value("${chs.kafka.api.endpoint}") String chsKafkaUrl,
-                                ApiClientService apiClientService,
-                                Logger logger,
+    public ExemptionsApiService(Supplier<InternalApiClient> apiClientSupplier, Logger logger,
                                 ResourceChangedRequestMapper mapper) {
-        this.chsKafkaUrl = chsKafkaUrl;
-        this.apiClientService = apiClientService;
+        this.apiClientSupplier = apiClientSupplier;
         this.logger = logger;
         this.mapper = mapper;
     }
@@ -39,28 +33,17 @@ public class ExemptionsApiService {
      * @param resourceChangedRequest encapsulates details relating to the updated or deleted company exemption
      * @return The service status of the response from chs kafka api
      */
-    public ServiceStatus invokeChsKafkaApi(ResourceChangedRequest resourceChangedRequest) {
-        InternalApiClient internalApiClient = apiClientService.getInternalApiClient();
-        internalApiClient.setBasePath(chsKafkaUrl);
+    public void invokeChsKafkaApi(ResourceChangedRequest resourceChangedRequest) {
+        InternalApiClient internalApiClient = apiClientSupplier.get();
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
                         CHANGED_RESOURCE_URI, mapper.mapChangedResource(resourceChangedRequest));
-
-        return handleApiCall(changedResourcePost);
-    }
-
-    private ServiceStatus handleApiCall(PrivateChangedResourcePost changedResourcePost) {
         try {
             changedResourcePost.execute();
-            return ServiceStatus.SUCCESS;
         } catch (ApiErrorResponseException ex) {
-            if (!HttpStatus.valueOf(ex.getStatusCode()).is2xxSuccessful()) {
-                logger.error("Unsuccessful call to /private/resource-changed endpoint", ex);
-            } else {
-                logger.error("Error occurred while calling /private/resource-changed endpoint", ex);
-            }
-            return ServiceStatus.SERVER_ERROR;
+            logger.info("Resource changed call failed: %s".formatted(ex.getStatusCode()));
+            throw new ServiceUnavailableException("Error calling resource changed endpoint");
         }
     }
 }
