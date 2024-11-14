@@ -54,3 +54,27 @@ Feature: Deletes company exemption resource from the database
     Examples:
       | company_number |
       | 00006400       |
+
+  Scenario Outline: A DELETE request is sent with a stale delta causing a conflict error
+
+    Given exemptions exists for company number "<company_number>" with delta_at "<delta_at>"
+    When a request is sent to the delete endpoint for "<company_number>"
+    Then a response status code of 409 should be returned
+    And the CHS Kafka API service is not invoked
+    And the resource has been persisted for "<company_number>"
+
+    Examples:
+      | company_number | delta_at             |
+      | 00006400       | 20240819123045999999 |
+
+  Scenario Outline: A DELETE request is sent without a delta_at causing a bad request error
+
+    Given exemptions exists for company number "<company_number>"
+    When a delete request is sent without delta_at for "<company_number>"
+    Then a response status code of 400 should be returned
+    And the CHS Kafka API service is not invoked
+    And the resource has been persisted for "<company_number>"
+
+    Examples:
+      | company_number |
+      | 00006400       |

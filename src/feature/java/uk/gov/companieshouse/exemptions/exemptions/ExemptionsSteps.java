@@ -208,25 +208,7 @@ public class ExemptionsSteps {
 
     @When("a request is sent to the delete endpoint for {string}")
     public void sendRequestToDeleteEndpoint(String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-        this.contextId = "5234234234";
-        CucumberContext.CONTEXT.set("contextId", this.contextId);
-        headers.set("x-request-id", this.contextId);
-        headers.set("ERIC-Identity", "TEST-IDENTITY");
-        headers.set("ERIC-Identity-Type", "KEY");
-        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
-        headers.set("X-DELTA-AT", "20240219123045999999");
-
-        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
-
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
-        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
-
-        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+        invokeDeleteCall(companyNumber, "20240219123045999999");
     }
 
     @When("a delete request is sent after to the delete endpoint for {string}")
@@ -245,10 +227,6 @@ public class ExemptionsSteps {
 
         Optional<CompanyExemptionsDocument> document = Optional.empty();
         CucumberContext.CONTEXT.set("exemptionsDocument", document);
-
-        /*when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true)))
-                .thenReturn(SUCCESS);*/
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -290,6 +268,34 @@ public class ExemptionsSteps {
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a delete request is sent without delta_at for {string}")
+    public void deleteRequestSentWithoutDeltaAt(String companyNumber) {
+        invokeDeleteCall(companyNumber, null);
+    }
+
+    private void invokeDeleteCall(String companyNumber, String deltaAt) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", deltaAt);
+
+        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class,
+                companyNumber);
+
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }
