@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.exemptions.util;
 
+import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -8,14 +10,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
-
-    @Autowired
-    private Logger logger;
+    private final Logger logger = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @Override
     public LocalDate deserialize(JsonParser jsonParser, DeserializationContext

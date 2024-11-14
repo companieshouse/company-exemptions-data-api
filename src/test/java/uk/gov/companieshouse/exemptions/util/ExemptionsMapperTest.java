@@ -1,8 +1,25 @@
 package uk.gov.companieshouse.exemptions.util;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
+import static uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem.ExemptionTypeEnum.DISCLOSURE_TRANSPARENCY_RULES_CHAPTER_FIVE_APPLIES;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsSharesAdmittedOnMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_SHARES_ADMITTED_ON_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_EU_REGULATED_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
+import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
@@ -18,42 +35,23 @@ import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarke
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem;
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
-import uk.gov.companieshouse.exemptions.util.ExemptionsMapper;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
-import static uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem.ExemptionTypeEnum.DISCLOSURE_TRANSPARENCY_RULES_CHAPTER_FIVE_APPLIES;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsSharesAdmittedOnMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_SHARES_ADMITTED_ON_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnEuRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_EU_REGULATED_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET;
-import static uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem.ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_UK_REGULATED_MARKET;
 
 @ExtendWith(MockitoExtension.class)
-public class ExemptionsMapperTest {
+class ExemptionsMapperTest {
 
     private static final String COMPANY_NUMBER = "123456789";
     private static final LocalDate DATE = LocalDate.of(2022, 11, 3);
 
     private ExemptionsMapper mapper;
 
-    @Before
+    @BeforeEach
     public void setup() {
         mapper = new ExemptionsMapper();
     }
 
     @Test
     @DisplayName("Test should successfully map an InternalExemptionsApi to a CompanyExemptionsDocument")
-    public void map() {
+    void mapToCompanyExemptionsDocument() {
         // Given
         ExemptionsUpdateData external = new ExemptionsUpdateData();
         external.setExemptions(getExemptions());
@@ -84,7 +82,6 @@ public class ExemptionsMapperTest {
         assertTrue(LocalDateTime.now().toEpochSecond(ZoneOffset.MIN)
                 - document.getUpdated().at().toEpochSecond(ZoneOffset.MIN) < 2);
     }
-
     private Exemptions getExemptions() {
         ExemptionItem exemptionItem = new ExemptionItem();
         exemptionItem.exemptFrom(DATE);

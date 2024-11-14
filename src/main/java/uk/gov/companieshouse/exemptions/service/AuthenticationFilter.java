@@ -1,12 +1,11 @@
 package uk.gov.companieshouse.exemptions.service;
 
-import java.io.IOException;
-import java.util.Optional;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
+import java.io.IOException;
+import java.util.Optional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.lang.NonNull;

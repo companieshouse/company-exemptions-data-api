@@ -1,11 +1,10 @@
 package uk.gov.companieshouse.exemptions.model;
 
+import java.util.Objects;
+import javax.persistence.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-
-import javax.persistence.Id;
-import java.util.Objects;
 
 @Document(collection = "company_exemptions")
 public class CompanyExemptionsDocument {
