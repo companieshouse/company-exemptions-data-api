@@ -45,7 +45,7 @@ class ResourceChangedRequestMapperTest {
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
 
         // when
-        ChangedResource actual = mapper.mapChangedResource(argument.request());
+        ChangedResource actual = mapper.mapChangedResourceChanged(argument.request());
 
         // then
         assertEquals(argument.changedResource(), actual);
@@ -64,7 +64,7 @@ class ResourceChangedRequestMapperTest {
                         .build(),
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                                Optional.empty(), true))
+                                new CompanyExemptionsDocument(), true))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
@@ -73,7 +73,7 @@ class ResourceChangedRequestMapperTest {
                         .build(),
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                                Optional.of(getCompanyExemptionsDocument()), true))
+                                getCompanyExemptionsDocument(), true))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")

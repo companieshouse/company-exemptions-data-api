@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.companieshouse.api.delta.Exemption;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.DiclosureTransparencyRulesChapterFiveAppliesItem;
 import uk.gov.companieshouse.api.exemptions.ExemptionItem;
@@ -36,18 +37,12 @@ import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketI
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnUkRegulatedMarketItem;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 
-@ExtendWith(MockitoExtension.class)
 class ExemptionsMapperTest {
 
     private static final String COMPANY_NUMBER = "123456789";
     private static final LocalDate DATE = LocalDate.of(2022, 11, 3);
 
-    private ExemptionsMapper mapper;
-
-    @BeforeEach
-    public void setup() {
-        mapper = new ExemptionsMapper();
-    }
+    private final ExemptionsMapper mapper = new ExemptionsMapper();
 
     @Test
     @DisplayName("Test should successfully map an InternalExemptionsApi to a CompanyExemptionsDocument")

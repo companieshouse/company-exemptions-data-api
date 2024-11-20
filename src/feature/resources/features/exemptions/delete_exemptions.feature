@@ -12,7 +12,7 @@ Feature: Deletes company exemption resource from the database
       | company_number |
       | 00006400       |
 
-  Scenario Outline: 200 status code is returned when resource not found in Mongo
+  Scenario Outline: Successfully calls CHS Kafka API even when resource to delete could not be found
 
     Given the resource does not exist in the database for "<company_number>"
     When a delete request is sent after to the delete endpoint for "<company_number>"

@@ -15,19 +15,10 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 
-@ExtendWith(MockitoExtension.class)
 class LocalDateDeSerializerTest {
 
-    private LocalDateDeSerializer deserializer;
-
-    private ObjectMapper mapper;
-
-    @BeforeEach
-    void setUp() {
-        deserializer = new LocalDateDeSerializer();
-
-        mapper = new ObjectMapper();
-    }
+    private final LocalDateDeSerializer deserializer = new LocalDateDeSerializer();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     void dateShouldDeserialize() throws IOException{

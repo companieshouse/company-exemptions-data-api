@@ -12,6 +12,8 @@ public class DateUtils {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
             .withZone(UTC);
 
+    private DateUtils() {}
+
     public static String publishedAtString(final Instant source) {
         return source.atOffset(UTC)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss"));

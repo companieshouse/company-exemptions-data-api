@@ -38,7 +38,21 @@ public class ExemptionsApiService {
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
-                        CHANGED_RESOURCE_URI, mapper.mapChangedResource(resourceChangedRequest));
+                        CHANGED_RESOURCE_URI, mapper.mapChangedResourceChanged(resourceChangedRequest));
+        try {
+            changedResourcePost.execute();
+        } catch (ApiErrorResponseException ex) {
+            logger.info("Resource changed call failed: %s".formatted(ex.getStatusCode()));
+            throw new ServiceUnavailableException("Error calling resource changed endpoint");
+        }
+    }
+
+    public void invokeChsKafkaApiDelete(ResourceChangedRequest resourceChangedRequest) {
+        InternalApiClient internalApiClient = apiClientSupplier.get();
+
+        PrivateChangedResourcePost changedResourcePost =
+                internalApiClient.privateChangedResourceHandler().postChangedResource(
+                        CHANGED_RESOURCE_URI, mapper.mapChangedResourceDeleted(resourceChangedRequest));
         try {
             changedResourcePost.execute();
         } catch (ApiErrorResponseException ex) {

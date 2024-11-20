@@ -14,13 +14,14 @@ import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.NotFoundException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.exemptions.util.DateUtils;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
 @ControllerAdvice
 public class ControllerExceptionHandler {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Void> handleNotFound(NotFoundException ex) {

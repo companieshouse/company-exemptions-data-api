@@ -237,7 +237,7 @@ public class ExemptionsSteps {
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
-        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
+        CompanyExemptionsDocument document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
@@ -288,8 +288,6 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("X-DELTA-AT", deltaAt);
-
-        Optional<CompanyExemptionsDocument> document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);

@@ -14,15 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 
-@ExtendWith(MockitoExtension.class)
 class ExemptionsReadConverterTest {
 
-    private ExemptionsReadConverter converter;
-
-    @BeforeEach
-    void setUp(){
-        converter = new ExemptionsReadConverter(new ObjectMapper());
-    }
+    private final ExemptionsReadConverter converter = new ExemptionsReadConverter(new ObjectMapper());
 
     @Test
     void convertDocumentToCompanyExemptions() {

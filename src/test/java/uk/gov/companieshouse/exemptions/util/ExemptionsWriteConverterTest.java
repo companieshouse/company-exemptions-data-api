@@ -14,15 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 
-@ExtendWith(MockitoExtension.class)
 class ExemptionsWriteConverterTest {
 
-    private ExemptionsWriteConverter converter;
-
-    @BeforeEach
-    void setUp() {
-        converter = new ExemptionsWriteConverter(new ObjectMapper());
-    }
+    private final ExemptionsWriteConverter converter = new ExemptionsWriteConverter(new ObjectMapper());
 
     @Test
     void convertExemptionsToBasicDBObject() {

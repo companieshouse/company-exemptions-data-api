@@ -13,6 +13,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.InternalApiClient;
@@ -71,7 +73,7 @@ class ExemptionsApiServiceTest {
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
-        when(mapper.mapChangedResource(resourceChangedRequest)).thenReturn(changedResource);
+        when(mapper.mapChangedResourceChanged(resourceChangedRequest)).thenReturn(changedResource);
 
         // when
         exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
@@ -83,39 +85,16 @@ class ExemptionsApiServiceTest {
         verify(changedResourcePost).execute();
     }
 
-    @Test
-    @DisplayName("Throw service unavailable exception when response code is HTTP 503")
-    void invokeChsKafkaApi503() throws ApiErrorResponseException {
+    @ParameterizedTest
+    @CsvSource({
+            "503, Service Unavailable",
+            "500, Internal Server Error",
+            "200, ''"
+    })
+    @DisplayName("Throw service unavailable exception given response codes")
+    void invokeChsKafkaApiError(final int statusCode, final String statusMessage) throws ApiErrorResponseException {
         // given
-        setupExceptionScenario(503, "Service Unavailable");
-
-        // when
-        Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
-
-        // then
-        assertThrows(ServiceUnavailableException.class, actual);
-        verifyExceptionScenario();
-    }
-
-    @Test
-    @DisplayName("Throw service unavailable exception when response code is HTTP 500")
-    void invokeChsKafkaApi500() throws ApiErrorResponseException {
-        // given
-        setupExceptionScenario(500, "Internal Service Error");
-
-        // when
-        Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
-
-        // then
-        assertThrows(ServiceUnavailableException.class, actual);
-        verifyExceptionScenario();
-    }
-
-    @Test
-    @DisplayName("Throw service unavailable exception when response code is HTTP 200 with errors")
-    void invokeChsKafkaApi200Errors() throws ApiErrorResponseException {
-        // given
-        setupExceptionScenario(200, "");
+        setupExceptionScenario(statusCode, statusMessage);
 
         // when
         Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
@@ -129,7 +108,7 @@ class ExemptionsApiServiceTest {
         when(apiClientSupplier.get()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
-        when(mapper.mapChangedResource(resourceChangedRequest)).thenReturn(changedResource);
+        when(mapper.mapChangedResourceChanged(resourceChangedRequest)).thenReturn(changedResource);
 
         HttpResponseException.Builder builder = new HttpResponseException.Builder(statusCode,
                 statusMessage, new HttpHeaders());

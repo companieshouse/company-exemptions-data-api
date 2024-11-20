@@ -98,8 +98,9 @@ public class ExemptionsServiceImpl implements ExemptionsService {
         }
         try {
             Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
-            if (document.isPresent()) {
-                String existingDeltaAt = document.get().getDeltaAt();
+
+            document.ifPresentOrElse(doc -> {
+                String existingDeltaAt = doc.getDeltaAt();
                 if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
                     logger.error(String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
                             requestDeltaAt, existingDeltaAt));
@@ -108,11 +109,12 @@ public class ExemptionsServiceImpl implements ExemptionsService {
 
                 repository.deleteById(companyNumber);
                 logger.info(String.format("Company exemptions for company number: %s deleted in MongoDb for context id: %s", companyNumber, contextId));
-            } else {
+                exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(contextId, companyNumber, doc, true));
+            }, () -> {
                 logger.error(String.format("Company exemptions do not exist for company number %s", companyNumber));
-            }
+                exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(contextId, companyNumber, new CompanyExemptionsDocument(), true));
+            });
 
-            exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(contextId, companyNumber, document, true));
             logger.info(String.format("ChsKafka api DELETED invoked successfully for context id: %s and company number: %s", contextId, companyNumber));
         } catch (IllegalArgumentException ex) {
             logger.error("Error calling chs-kafka-api");

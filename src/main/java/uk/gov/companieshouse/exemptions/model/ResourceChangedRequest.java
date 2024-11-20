@@ -1,9 +1,8 @@
 package uk.gov.companieshouse.exemptions.model;
 
 import java.util.Objects;
-import java.util.Optional;
 
-public record ResourceChangedRequest(String contextId, String companyNumber, Optional<CompanyExemptionsDocument> document, Boolean isDelete) {
+public record ResourceChangedRequest(String contextId, String companyNumber, CompanyExemptionsDocument document, Boolean isDelete) {
 
     @Override
     public boolean equals(Object o) {
