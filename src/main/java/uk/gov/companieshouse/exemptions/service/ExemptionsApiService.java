@@ -12,7 +12,9 @@ import uk.gov.companieshouse.logging.Logger;
 
 @Component
 public class ExemptionsApiService {
+
     private static final String CHANGED_RESOURCE_URI = "/private/resource-changed";
+
     private final Logger logger;
     private final Supplier<InternalApiClient> apiClientSupplier;
     private final ResourceChangedRequestMapper mapper;
@@ -38,7 +40,7 @@ public class ExemptionsApiService {
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
-                        CHANGED_RESOURCE_URI, mapper.mapChangedResourceChanged(resourceChangedRequest));
+                        CHANGED_RESOURCE_URI, mapper.mapChangedEvent(resourceChangedRequest));
         try {
             changedResourcePost.execute();
         } catch (ApiErrorResponseException ex) {
@@ -52,7 +54,7 @@ public class ExemptionsApiService {
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
-                        CHANGED_RESOURCE_URI, mapper.mapChangedResourceDeleted(resourceChangedRequest));
+                        CHANGED_RESOURCE_URI, mapper.mapDeletedEvent(resourceChangedRequest));
         try {
             changedResourcePost.execute();
         } catch (ApiErrorResponseException ex) {

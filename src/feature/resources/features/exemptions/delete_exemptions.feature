@@ -39,7 +39,7 @@ Feature: Deletes company exemption resource from the database
     Given the CHS Kafka API service is unavailable
     And exemptions exists for company number "<company_number>"
     When a request is sent to the delete endpoint for "<company_number>"
-    Then a response status code of 503 should be returned
+    Then a response status code of 200 should be returned
     And the resource does not exist in the database for "<company_number>"
 
     Examples:

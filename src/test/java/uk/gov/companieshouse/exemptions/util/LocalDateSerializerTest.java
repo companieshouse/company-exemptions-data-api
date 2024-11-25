@@ -5,7 +5,6 @@ import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import java.time.LocalDate;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -16,18 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class LocalDateSerializerTest {
 
-    private LocalDateSerializer serializer;
+    private final LocalDateSerializer serializer = new LocalDateSerializer();
 
     @Mock
     private JsonGenerator generator;
 
     @Captor
     private ArgumentCaptor<String> dateString;
-
-    @BeforeEach
-    void setUp() {
-        serializer = new LocalDateSerializer();
-    }
 
     @Test
     void dateShouldSerialize() throws Exception {

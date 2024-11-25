@@ -1,6 +1,5 @@
 package uk.gov.companieshouse.exemptions.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,11 +16,13 @@ import uk.gov.companieshouse.logging.Logger;
 @RestController
 public class ExemptionsController {
 
-    @Autowired
-    private Logger logger;
+    private final Logger logger;
+    private final ExemptionsService service;
 
-    @Autowired
-    private ExemptionsService service;
+    public ExemptionsController(Logger logger, ExemptionsService service) {
+        this.logger = logger;
+        this.service = service;
+    }
 
     @PutMapping("/company-exemptions/{company_number}/internal")
     public ResponseEntity<Void> companyExemptionsUpsert(

@@ -79,8 +79,7 @@ public class ExemptionsSteps {
         companyExemptions.setDeltaAt(deltaAt);
 
         exemptionsRepository.save(companyExemptions);
-        Optional<CompanyExemptionsDocument> document = Optional.of(companyExemptions);
-        CucumberContext.CONTEXT.set("exemptionsDocument", document);
+        CucumberContext.CONTEXT.set("exemptionsDocument", companyExemptions);
     }
 
     @And("exemptions exists for company number {string}")
@@ -225,8 +224,7 @@ public class ExemptionsSteps {
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("X-DELTA-AT", "20240219123045999999");
 
-        Optional<CompanyExemptionsDocument> document = Optional.empty();
-        CucumberContext.CONTEXT.set("exemptionsDocument", document);
+        CucumberContext.CONTEXT.set("exemptionsDocument", new CompanyExemptionsDocument());
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -241,7 +239,7 @@ public class ExemptionsSteps {
 
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
                 CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
-        verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(resourceChangedRequest);
     }
 
     @And("the resource does not exist in the database for {string}")

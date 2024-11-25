@@ -8,13 +8,13 @@ import static org.mockito.Mockito.when;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpResponseException;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.InternalApiClient;
@@ -31,39 +31,28 @@ import uk.gov.companieshouse.logging.Logger;
 @ExtendWith(MockitoExtension.class)
 class ExemptionsApiServiceTest {
 
+    @InjectMocks
+    private ExemptionsApiService exemptionsApiService;
+
     @Mock
     private Supplier<InternalApiClient> apiClientSupplier;
-
-    @Mock
-    private InternalApiClient internalApiClient;
-
-    @Mock
-    private PrivateChangedResourceHandler privateChangedResourceHandler;
-
-    @Mock
-    private PrivateChangedResourcePost changedResourcePost;
-
-    @Mock
-    private ApiResponse<Void> response;
-
     @Mock
     private Logger logger;
-
     @Mock
     private ResourceChangedRequestMapper mapper;
 
     @Mock
+    private InternalApiClient internalApiClient;
+    @Mock
+    private PrivateChangedResourceHandler privateChangedResourceHandler;
+    @Mock
+    private PrivateChangedResourcePost changedResourcePost;
+    @Mock
+    private ApiResponse<Void> response;
+    @Mock
     private ResourceChangedRequest resourceChangedRequest;
-
     @Mock
     private ChangedResource changedResource;
-
-    private ExemptionsApiService exemptionsApiService;
-
-    @BeforeEach
-    void setup() {
-        exemptionsApiService = new ExemptionsApiService(apiClientSupplier, logger, mapper);
-    }
 
     @Test
     @DisplayName("Test should successfully invoke chs-kafka-api")
@@ -73,7 +62,7 @@ class ExemptionsApiServiceTest {
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
-        when(mapper.mapChangedResourceChanged(resourceChangedRequest)).thenReturn(changedResource);
+        when(mapper.mapChangedEvent(resourceChangedRequest)).thenReturn(changedResource);
 
         // when
         exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
@@ -108,7 +97,7 @@ class ExemptionsApiServiceTest {
         when(apiClientSupplier.get()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
-        when(mapper.mapChangedResourceChanged(resourceChangedRequest)).thenReturn(changedResource);
+        when(mapper.mapChangedEvent(resourceChangedRequest)).thenReturn(changedResource);
 
         HttpResponseException.Builder builder = new HttpResponseException.Builder(statusCode,
                 statusMessage, new HttpHeaders());

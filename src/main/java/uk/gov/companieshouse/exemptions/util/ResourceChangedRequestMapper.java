@@ -19,11 +19,11 @@ public class ResourceChangedRequestMapper {
         this.instantSupplier = instantSupplier;
     }
 
-    public ChangedResource mapChangedResourceChanged(ResourceChangedRequest request) {
+    public ChangedResource mapChangedEvent(ResourceChangedRequest request) {
         return buildChangedResource(CHANGED, request);
     }
 
-    public ChangedResource mapChangedResourceDeleted(ResourceChangedRequest request) {
+    public ChangedResource mapDeletedEvent(ResourceChangedRequest request) {
         ChangedResource changedResource = buildChangedResource(DELETED, request);
         changedResource.setDeletedData(request.document().getData());
         return changedResource;

@@ -7,9 +7,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -38,14 +38,35 @@ class ResourceChangedRequestMapperTest {
     @InjectMocks
     private ResourceChangedRequestMapper mapper;
 
+    @Test
+    void shouldMapChangedEvent() {
+        // given
+        ResourceChangedTestArgument argument = ResourceChangedTestArgument.builder()
+                .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                        null, false))
+                .withContextId(EXPECTED_CONTEXT_ID)
+                .withResourceUri("company/12345678/exemptions")
+                .withResourceKind("company-exemptions")
+                .withEventType("changed")
+                .withEventPublishedAt(PUBLISHED_AT)
+                .build();
+        when(instantSupplier.get()).thenReturn(UPDATED_AT);
+
+        // when
+        ChangedResource actual = mapper.mapChangedEvent(argument.request());
+
+        // then
+        assertEquals(argument.changedResource(), actual);
+    }
+
     @ParameterizedTest
     @MethodSource("resourceChangedScenarios")
-    void testMapper(ResourceChangedTestArgument argument) {
+    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
 
         // when
-        ChangedResource actual = mapper.mapChangedResourceChanged(argument.request());
+        ChangedResource actual = mapper.mapDeletedEvent(argument.request());
 
         // then
         assertEquals(argument.changedResource(), actual);
@@ -53,15 +74,6 @@ class ResourceChangedRequestMapperTest {
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
         return Stream.of(
-                ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                                null, false))
-                        .withContextId(EXPECTED_CONTEXT_ID)
-                        .withResourceUri("company/12345678/exemptions")
-                        .withResourceKind("company-exemptions")
-                        .withEventType("changed")
-                        .withEventPublishedAt(PUBLISHED_AT)
-                        .build(),
                 ResourceChangedTestArgument.builder()
                         .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
                                 new CompanyExemptionsDocument(), true))
