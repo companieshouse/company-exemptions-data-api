@@ -1,6 +1,23 @@
 package uk.gov.companieshouse.exemptions.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,36 +27,29 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
+import uk.gov.companieshouse.api.exemptions.ExemptionItem;
+import uk.gov.companieshouse.api.exemptions.Exemptions;
 import uk.gov.companieshouse.api.exemptions.InternalData;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
+import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem;
+import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum;
+import uk.gov.companieshouse.exemptions.exception.BadRequestException;
+import uk.gov.companieshouse.exemptions.exception.ConflictException;
+import uk.gov.companieshouse.exemptions.exception.NotFoundException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
-import uk.gov.companieshouse.exemptions.model.*;
-import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
-import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.service.ExemptionsServiceImpl;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
+import uk.gov.companieshouse.exemptions.model.Created;
+import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
+import uk.gov.companieshouse.exemptions.model.Updated;
 import uk.gov.companieshouse.exemptions.util.ExemptionsMapper;
 import uk.gov.companieshouse.logging.Logger;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExemptionsServiceImplTest {
 
     private static final String COMPANY_NUMBER = "12345678";
+    private static final String DELTA_AT = "20240219123045999999";
 
     @Mock
     private ExemptionsRepository repository;
@@ -57,178 +67,198 @@ class ExemptionsServiceImplTest {
     private ExemptionsServiceImpl service;
 
     private InternalExemptionsApi requestBody;
-    private CompanyExemptionsDocument document;
+    private CompanyExemptionsDocument mappedExemptionsDocument;
     private CompanyExemptionsDocument existingDocument;
 
     @BeforeEach
     public void setUp() {
-        OffsetDateTime date = OffsetDateTime.now();
+        OffsetDateTime date = OffsetDateTime.of(2023,1, 1,12,
+                0,0,0, ZoneOffset.UTC);
         requestBody = new InternalExemptionsApi();
         InternalData internal = new InternalData();
         internal.setDeltaAt(date);
         requestBody.setInternalData(internal);
-        document = new CompanyExemptionsDocument();
-        document.setUpdated(new Updated(LocalDateTime.now()));
-        final DateTimeFormatter dateTimeFormatter =
-                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
-        String dateString = date.format(dateTimeFormatter);
-        document.setDeltaAt(dateString);
+
+        mappedExemptionsDocument = getExemptionsDocument(date);
+
         existingDocument = new CompanyExemptionsDocument();
         existingDocument.setDeltaAt("20221012091025774312");
     }
 
     @Test
-    @DisplayName("Test successful insert and call to chs kafka api")
+    @DisplayName("Upsert successful insert and call to chs kafka api")
     void insertCompanyExemptions() {
+        // given
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
 
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        // when
+        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
-        assertNotNull(document.getCreated().getAt());
+        // then
+        assertNotNull(mappedExemptionsDocument.getCreated().getAt());
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verify(repository).save(document);
+        verify(repository).save(mappedExemptionsDocument);
     }
 
     @Test
-    @DisplayName("Test successful update and call to chs kafka api")
+    @DisplayName("Upsert successful update and call to chs kafka api")
     void updateCompanyExemptions() {
+        // given
         existingDocument.setCreated(new Created().setAt(LocalDateTime.of(2022, 11, 2, 15, 55)));
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(existingDocument));
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
 
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        // when
+        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
-        assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), document.getCreated().getAt());
+        // then
+        assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), mappedExemptionsDocument.getCreated().getAt());
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verify(repository).save(document);
+        verify(repository).save(mappedExemptionsDocument);
     }
 
     @Test
-    @DisplayName("Test should not update exemptions record from out of date delta")
+    @DisplayName("Upsert errors with conflict for exemptions record with out of date delta")
     void outOfDateDelta() {
+        // given
         requestBody.getInternalData().setDeltaAt(OffsetDateTime.of(2018,1,1,0,0,0,0,ZoneOffset.UTC));
         when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.CLIENT_ERROR, serviceStatus);
+        // when
+        Executable actual = () -> service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+
+        // then
+        assertThrows(ConflictException.class, actual);
         verifyNoInteractions(exemptionsApiService);
         verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("Test should update exemptions if existing document has no delta_at field")
+    @DisplayName("Upsert should update exemptions if existing document has no delta_at field")
     void updateExemptionsDeltaAtAbsent() {
+        // given
         existingDocument.setDeltaAt(null);
         existingDocument.setCreated(new Created().setAt(LocalDateTime.of(2022, 11, 2, 15, 55)));
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.of(existingDocument));
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
 
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        // when
+        service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.SUCCESS, serviceStatus);
-        assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), document.getCreated().getAt());
+        // then
+        assertEquals(LocalDateTime.of(2022, 11, 2, 15, 55), mappedExemptionsDocument.getCreated().getAt());
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
-        verify(repository).save(document);
+        verify(repository).save(mappedExemptionsDocument);
     }
 
     @Test
-    @DisplayName("Test should return status server error when save to repository throws data access exception on findById")
+    @DisplayName("Upsert errors with service unavailable when save to repository throws data access exception on findById")
     void saveToRepositoryFindError() {
+        // given
         when(repository.findById(COMPANY_NUMBER)).thenThrow(ServiceUnavailableException.class);
 
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        // when
+        Executable actual = () -> service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
+        // then
+        assertThrows(ServiceUnavailableException.class, actual);
         verifyNoInteractions(exemptionsApiService);
         verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("Test should return status server error when save to repository throws data access exception")
+    @DisplayName("Upsert errors with service unavailable when save to repository throws data access exception")
     void saveToRepositoryError() {
+        // given
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(repository.save(document)).thenThrow(ServiceUnavailableException.class);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
+        when(repository.save(mappedExemptionsDocument)).thenThrow(ServiceUnavailableException.class);
 
-        ServiceStatus serviceStatus = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        // when
+        Executable actual = () -> service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
-        assertEquals(ServiceStatus.SERVER_ERROR, serviceStatus);
-        verify(repository).save(document);
+        // then
+        assertThrows(ServiceUnavailableException.class, actual);
+        verify(repository).save(mappedExemptionsDocument);
         verifyNoInteractions(exemptionsApiService);
     }
 
     @Test
-    @DisplayName("Test call to upsert company exemptions when chs-kafka-api unavailable returns server error")
+    @DisplayName("Upsert errors with service unavailable when chs-kafka-api unavailable")
     void updateCompanyExemptionsServerError() {
         // given
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SERVER_ERROR);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
+        doThrow(ServiceUnavailableException.class).when(exemptionsApiService).invokeChsKafkaApi(any());
 
         // when
-        ServiceStatus actual = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        Executable actual = () -> service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(ServiceUnavailableException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(repository).save(document);
+        verify(repository).save(mappedExemptionsDocument);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
     }
 
     @Test
-    @DisplayName("Test call to upsert company exemptions when chs-kafka-api unavailable throws illegal arg exception")
+    @DisplayName("Upsert errors with bad request when chs-kafka-api throws illegal argument exception")
     void updateCompanyExemptionsIllegalArg() {
         // given
         when(repository.findById(COMPANY_NUMBER)).thenReturn(Optional.empty());
-        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(document);
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
+        when(mapper.map(COMPANY_NUMBER, requestBody)).thenReturn(mappedExemptionsDocument);
+        doThrow(IllegalArgumentException.class).when(exemptionsApiService).invokeChsKafkaApi(any());
 
         // when
-        ServiceStatus actual = service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
+        Executable actual = () -> service.upsertCompanyExemptions("", COMPANY_NUMBER, requestBody);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(BadRequestException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(repository).save(document);
+        verify(repository).save(mappedExemptionsDocument);
         verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, null, false));
     }
 
     @Test
     @DisplayName("Test successful call to get company exemptions")
     void getCompanyExemptions() {
-        when(repository.findById(any())).thenReturn(Optional.of(document));
+        // given
+        when(repository.findById(any())).thenReturn(Optional.of(mappedExemptionsDocument));
 
-        Optional<CompanyExemptionsDocument> actual = service.getCompanyExemptions(COMPANY_NUMBER);
+        // when
+        CompanyExemptions actual = service.getCompanyExemptions(COMPANY_NUMBER);
 
-        assertTrue(actual.isPresent());
-        assertEquals(document, actual.get());
+        // then
+        assertNotNull(actual);
+        assertEquals(getExemptionsData(), actual);
         verify(repository).findById(COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Test call to get company exemptions returns not found")
     void getCompanyExemptionsNotFound() {
+        // given
         when(repository.findById(any())).thenReturn(Optional.empty());
 
-        Optional<CompanyExemptionsDocument> actual = service.getCompanyExemptions(COMPANY_NUMBER);
+        // when
+        Executable actual = () -> service.getCompanyExemptions(COMPANY_NUMBER);
 
-        assertEquals(Optional.empty(), actual);
+        // then
+        assertThrows(NotFoundException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
     }
 
     @Test
     @DisplayName("Test call to get company exemptions throws service unavailable")
     void getCompanyExemptionsDataAccessException() {
+        // given
         when(repository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
+        // when
         Executable executable = () -> service.getCompanyExemptions(COMPANY_NUMBER);
 
+        // then
         Exception exception = assertThrows(ServiceUnavailableException.class, executable);
         assertEquals("Data access exception thrown when calling Mongo Repository", exception.getMessage());
         verify(repository).findById(COMPANY_NUMBER);
@@ -238,104 +268,159 @@ class ExemptionsServiceImplTest {
     @DisplayName("Test successful call to delete company exemptions")
     void deleteCompanyExemptions() {
         // given
-        document.setData(new CompanyExemptions());
-        when(repository.findById(any())).thenReturn(Optional.of(document));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.SUCCESS, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(new ResourceChangedRequest("", COMPANY_NUMBER,
+                existingDocument, true));
         verify(repository).deleteById(COMPANY_NUMBER);
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions when document not found returns client error")
+    @DisplayName("Delete errors with bad request when deltaAt is missing")
+    void deleteCompanyExemptionsBadRequest() {
+        // given
+
+        // when
+        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, null);
+
+        // then
+        assertThrows(BadRequestException.class, actual);
+        verifyNoInteractions(repository);
+        verifyNoInteractions(exemptionsApiService);
+    }
+
+    @Test
+    @DisplayName("Delete errors with conflict when delta is stale")
+    void deleteCompanyExemptionsStaleDelta() {
+        existingDocument.setDeltaAt(DELTA_AT);
+
+        // given
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
+
+        // when
+        Executable actual = () -> service
+                .deleteCompanyExemptions("", COMPANY_NUMBER, "20230219123045999999");
+
+        // then
+        assertThrows(ConflictException.class, actual);
+        verify(repository).findById(COMPANY_NUMBER);
+        verifyNoInteractions(exemptionsApiService);
+    }
+
+    @Test
+    @DisplayName("Test call to delete company exemptions is successful when document not found")
     void deleteCompanyExemptionsNotFound() {
         // given
         when(repository.findById(any())).thenReturn(Optional.empty());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.CLIENT_ERROR, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verifyNoInteractions(exemptionsApiService);
-        verifyNoMoreInteractions(repository);
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(new ResourceChangedRequest("", COMPANY_NUMBER,
+                new CompanyExemptionsDocument(), true));
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions when chs-kafka-api unavailable returns server error")
+    @DisplayName("Delete errors with service unavailable when chs-kafka-api unavailable")
     void deleteCompanyExemptionsServerError() {
         // given
-        document.setData(new CompanyExemptions());
-        when(repository.findById(any())).thenReturn(Optional.of(document));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SERVER_ERROR);
+        existingDocument.setData(new CompanyExemptions());
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
+        doThrow(ServiceUnavailableException.class).when(exemptionsApiService).invokeChsKafkaApiDelete(any());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(ServiceUnavailableException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
-        verifyNoMoreInteractions(repository);
+        verify(repository).deleteById(COMPANY_NUMBER);
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(new ResourceChangedRequest("", COMPANY_NUMBER,
+                existingDocument, true));
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions, when chs-kafka-api unavailable and throws illegal argument exception, returns server error")
+    @DisplayName("Delete errors with bad request when chs-kafka-api throws illegal argument exception")
     void deleteCompanyExemptionsServerErrorIllegalArg() {
         // given
-        document.setData(new CompanyExemptions());
-        when(repository.findById(any())).thenReturn(Optional.of(document));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenThrow(IllegalArgumentException.class);
+        existingDocument.setData(new CompanyExemptions());
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
+        doThrow(IllegalArgumentException.class).when(exemptionsApiService).invokeChsKafkaApiDelete(any());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(BadRequestException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
-        verifyNoMoreInteractions(repository);
+        verify(repository).deleteById(COMPANY_NUMBER);
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(new ResourceChangedRequest("", COMPANY_NUMBER,
+                existingDocument, true));
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions, when MongoDB unavailable and throws data access exception at findById, returns server error")
+    @DisplayName("Delete errors with service unavailable repository throws data access exception on findById")
     void deleteCompanyExemptionsServerErrorDataAccessExceptionFindById() {
         // given
         when(repository.findById(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(ServiceUnavailableException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
         verifyNoInteractions(exemptionsApiService);
         verifyNoMoreInteractions(repository);
     }
 
     @Test
-    @DisplayName("Test call to delete company exemptions, when MongoDB unavailable and throws data access exception at deleteById, returns server error")
+    @DisplayName("Delete errors with service unavailable repository throws data access exception on deleteById")
     void deleteCompanyExemptionsServerErrorDataAccessExceptionDeleteById() {
         // given
-        document.setData(new CompanyExemptions());
-        when(repository.findById(any())).thenReturn(Optional.of(document));
-        when(exemptionsApiService.invokeChsKafkaApi(any())).thenReturn(ServiceStatus.SUCCESS);
+        existingDocument.setData(new CompanyExemptions());
+        when(repository.findById(any())).thenReturn(Optional.of(existingDocument));
         doThrow(ServiceUnavailableException.class).when(repository).deleteById(any());
 
         // when
-        ServiceStatus actual = service.deleteCompanyExemptions("", COMPANY_NUMBER);
+        Executable actual = () -> service.deleteCompanyExemptions("", COMPANY_NUMBER, DELTA_AT);
 
         // then
-        assertEquals(ServiceStatus.SERVER_ERROR, actual);
+        assertThrows(ServiceUnavailableException.class, actual);
         verify(repository).findById(COMPANY_NUMBER);
-        verify(exemptionsApiService).invokeChsKafkaApi(new ResourceChangedRequest("", COMPANY_NUMBER, document.getData(), true));
         verify(repository).deleteById(COMPANY_NUMBER);
+        verifyNoInteractions(exemptionsApiService);
+    }
+
+    private CompanyExemptionsDocument getExemptionsDocument(OffsetDateTime date) {
+        existingDocument = new CompanyExemptionsDocument();
+        existingDocument.setUpdated(new Updated(LocalDateTime.now()));
+        final DateTimeFormatter dateTimeFormatter =
+                DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS")
+                        .withZone(ZoneId.of("Z"));
+        String dateString = date.format(dateTimeFormatter);
+        existingDocument.setDeltaAt(dateString);
+        existingDocument.setData(getExemptionsData());
+        return existingDocument;
+    }
+
+    private CompanyExemptions getExemptionsData() {
+        CompanyExemptions exemptionsData = new CompanyExemptions();
+        exemptionsData.setKind(KindEnum.EXEMPTIONS);
+        Exemptions exemptions = new Exemptions();
+        ExemptionItem exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
+        PscExemptAsTradingOnRegulatedMarketItem regulatedMarketItem =
+                new PscExemptAsTradingOnRegulatedMarketItem(Collections.singletonList(exemptionItem),
+                        ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET);
+        exemptions.setPscExemptAsTradingOnRegulatedMarket(regulatedMarketItem);
+        exemptionsData.setExemptions(exemptions);
+        return exemptionsData;
     }
 }

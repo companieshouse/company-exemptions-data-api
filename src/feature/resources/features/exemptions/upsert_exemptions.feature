@@ -2,8 +2,7 @@ Feature: Upsert company exemption resource to database
 
   Scenario Outline: Processes exemptions upsert request successfully
 
-    Given CHS Kafka API Service is available
-    When a PUT request matching payload within "<file>" is sent for "<company_number>"
+    Given a PUT request matching payload within "<file>" is sent for "<company_number>"
     Then a response status code of 200 should be returned
     And the CHS Kafka API service is invoked for upsert with "<company_number>"
 

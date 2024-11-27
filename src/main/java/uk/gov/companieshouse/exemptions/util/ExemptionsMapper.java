@@ -1,5 +1,9 @@
 package uk.gov.companieshouse.exemptions.util;
 
+import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.GenerateEtagUtil;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
@@ -7,11 +11,6 @@ import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 import uk.gov.companieshouse.api.exemptions.LinksType;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.Updated;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import static uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum.EXEMPTIONS;
 
 @Component
 public class ExemptionsMapper {

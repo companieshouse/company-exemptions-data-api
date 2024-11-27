@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.exemptions.config;
 
+import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,9 +11,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
+import uk.gov.companieshouse.api.InternalApiClient;
+import uk.gov.companieshouse.api.http.ApiKeyHttpClient;
 import uk.gov.companieshouse.exemptions.util.ExemptionsReadConverter;
 import uk.gov.companieshouse.exemptions.util.ExemptionsWriteConverter;
 import uk.gov.companieshouse.exemptions.util.LocalDateDeSerializer;
@@ -19,11 +24,8 @@ import uk.gov.companieshouse.exemptions.util.LocalDateSerializer;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
-import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
-
 @Configuration
 public class Config {
-
     @Bean
     public Logger logger() {
         return LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
@@ -32,6 +34,17 @@ public class Config {
     @Bean
     public Supplier<Instant> instantSupplier() {
         return Instant::now;
+    }
+
+    @Bean
+    public Supplier<InternalApiClient> internalApiClientSupplier(
+            @Value("${chs.kafka.api.key}") String apiKey,
+            @Value("${chs.kafka.api.endpoint}") String apiUrl) {
+        return () -> {
+            InternalApiClient internalApiClient = new InternalApiClient(new ApiKeyHttpClient(apiKey));
+            internalApiClient.setBasePath(apiUrl);
+            return internalApiClient;
+        };
     }
 
     /**

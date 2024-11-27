@@ -2,12 +2,11 @@ package uk.gov.companieshouse.exemptions.exemptions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
-import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SERVER_ERROR;
-import static uk.gov.companieshouse.exemptions.model.ServiceStatus.SUCCESS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
@@ -18,7 +17,6 @@ import io.cucumber.java.en.When;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -29,11 +27,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
-import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.CucumberContext;
+import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
+import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 import uk.gov.companieshouse.exemptions.service.ExemptionsRepository;
-import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.exemptions.util.FileReaderUtil;
 
 public class ExemptionsSteps {
@@ -80,7 +79,7 @@ public class ExemptionsSteps {
         companyExemptions.setDeltaAt(deltaAt);
 
         exemptionsRepository.save(companyExemptions);
-        CucumberContext.CONTEXT.set("exemptionsData", exemptionsData);
+        CucumberContext.CONTEXT.set("exemptionsDocument", companyExemptions);
     }
 
     @And("exemptions exists for company number {string}")
@@ -137,10 +136,6 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false)))
-                    .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
-
         String payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
         HttpEntity<String> request = new HttpEntity<>(payload, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -167,12 +162,7 @@ public class ExemptionsSteps {
 
     @Given("the CHS Kafka API service is unavailable")
     public void ChsKafkaApiUnavailable() {
-        CucumberContext.CONTEXT.set("serviceStatus", SERVER_ERROR);
-    }
-
-    @Given("CHS Kafka API Service is available")
-    public void ChsKafKaApiAvailable(){
-        CucumberContext.CONTEXT.set("serviceStatus", SUCCESS);
+        doThrow(ServiceUnavailableException.class).when(exemptionsApiService).invokeChsKafkaApi(any());
     }
 
     @Given ("the exemptions database is unavailable")
@@ -217,6 +207,11 @@ public class ExemptionsSteps {
 
     @When("a request is sent to the delete endpoint for {string}")
     public void sendRequestToDeleteEndpoint(String companyNumber) {
+        invokeDeleteCall(companyNumber, "20240219123045999999");
+    }
+
+    @When("a delete request is sent after to the delete endpoint for {string}")
+    public void sendRequestToDeleteEndpointWhenDocDoesNotExist(String companyNumber) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
@@ -227,12 +222,9 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", "20240219123045999999");
 
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
-
-        when(exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true)))
-                .thenReturn(CucumberContext.CONTEXT.get("serviceStatus"));
+        CucumberContext.CONTEXT.set("exemptionsDocument", new CompanyExemptionsDocument());
 
         HttpEntity<String> request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
@@ -243,11 +235,11 @@ public class ExemptionsSteps {
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
-        CompanyExemptions data = CucumberContext.CONTEXT.get("exemptionsData");
+        CompanyExemptionsDocument document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
         ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, data, true);
-        verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
+                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
+        verify(exemptionsApiService).invokeChsKafkaApiDelete(resourceChangedRequest);
     }
 
     @And("the resource does not exist in the database for {string}")
@@ -274,6 +266,32 @@ public class ExemptionsSteps {
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
         ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+        CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
+    }
+
+    @When("a delete request is sent without delta_at for {string}")
+    public void deleteRequestSentWithoutDeltaAt(String companyNumber) {
+        invokeDeleteCall(companyNumber, null);
+    }
+
+    private void invokeDeleteCall(String companyNumber, String deltaAt) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+
+        this.contextId = "5234234234";
+        CucumberContext.CONTEXT.set("contextId", this.contextId);
+        headers.set("x-request-id", this.contextId);
+        headers.set("ERIC-Identity", "TEST-IDENTITY");
+        headers.set("ERIC-Identity-Type", "KEY");
+        headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
+        headers.set("X-DELTA-AT", deltaAt);
+
+        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class,
+                companyNumber);
+
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 }
