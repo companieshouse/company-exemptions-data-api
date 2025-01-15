@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>uk.gov.companieshouse</groupId>
 		<artifactId>companies-house-parent</artifactId>
-		<version>2.1.6</version>
+		<version>2.1.11</version>
 	</parent>
 	<artifactId>company-exemptions-data-api</artifactId>
 	<version>unversioned</version>
@@ -15,16 +15,15 @@
 		<java.version>21</java.version>
 
 		<maven-build-helper-plugin.version>3.6.0</maven-build-helper-plugin.version>
-		<spring-boot-dependencies.version>3.3.5</spring-boot-dependencies.version>
-		<spring-boot-maven-plugin.version>3.3.5</spring-boot-maven-plugin.version>
+		<spring-boot-dependencies.version>3.3.7</spring-boot-dependencies.version>
+		<spring-boot-maven-plugin.version>3.3.7</spring-boot-maven-plugin.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
 		<!-- tests -->
 		<maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-		<jib-maven-plugin.version>3.4.2</jib-maven-plugin.version>
+		<jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
 		<cucumber.version>7.20.1</cucumber.version>
-		<test-containers.version>1.20.3</test-containers.version>
 		<maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
@@ -32,7 +31,7 @@
 
 		<!-- internal -->
 		<structured-logging.version>3.0.20</structured-logging.version>
-		<private-api-sdk-java.version>4.0.237</private-api-sdk-java.version>
+		<private-api-sdk-java.version>4.0.258</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>3.0.6</api-sdk-manager-java-library.version>
 		<api-helper-java-library.version>3.0.1</api-helper-java-library.version>
     <api-security-java.version>2.0.8</api-security-java.version>
@@ -45,13 +44,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>${spring-boot-dependencies.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${test-containers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
