@@ -271,7 +271,7 @@ public class ExemptionsSteps {
 
     @When("a delete request is sent without delta_at for {string}")
     public void deleteRequestSentWithoutDeltaAt(String companyNumber) {
-        invokeDeleteCall(companyNumber, null);
+        invokeDeleteCall(companyNumber, "");
     }
 
     private void invokeDeleteCall(String companyNumber, String deltaAt) {

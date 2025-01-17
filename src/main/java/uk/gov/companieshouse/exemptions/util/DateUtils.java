@@ -16,7 +16,7 @@ public class DateUtils {
 
     public static String publishedAtString(final Instant source) {
         return source.atOffset(UTC)
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'hh:mm:ss"));
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
     }
 
     public static boolean isDeltaStale(final String requestDeltaAt, final String existingDeltaAt) {
