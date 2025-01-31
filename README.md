@@ -29,3 +29,11 @@ Application specific attributes | Value                                | Descrip
 ### Useful Links
 - [ECS service config dev repository](https://github.com/companieshouse/ecs-service-configs-dev)
 - [ECS service config production repository](https://github.com/companieshouse/ecs-service-configs-production)
+
+### Local Testing on CHS Dev
+1. Clone `docker-chs-development` from GitHub. 
+2. Change directory in your terminal to the cloned `docker-chs-development` directory 
+3. Ensure this service is enabled in chs-dev by running `chs-dev services enable company-exemptions-data-api`
+4. Build the local image using `make docker-image`
+5. Spin up the service using `chs-dev up`
+6. Shut down the service using `chs-dev down`
