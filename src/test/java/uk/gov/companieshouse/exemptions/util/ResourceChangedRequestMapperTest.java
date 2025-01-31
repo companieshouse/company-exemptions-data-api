@@ -1,8 +1,15 @@
 package uk.gov.companieshouse.exemptions.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -11,6 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
@@ -23,6 +31,7 @@ import uk.gov.companieshouse.api.exemptions.ExemptionItem;
 import uk.gov.companieshouse.api.exemptions.Exemptions;
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem;
 import uk.gov.companieshouse.api.exemptions.PscExemptAsTradingOnRegulatedMarketItem.ExemptionTypeEnum;
+import uk.gov.companieshouse.exemptions.exception.SerDesException;
 import uk.gov.companieshouse.exemptions.model.CompanyExemptionsDocument;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 
@@ -33,10 +42,13 @@ class ResourceChangedRequestMapperTest {
     private static final Instant UPDATED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     private static final String PUBLISHED_AT = DateUtils.publishedAtString(UPDATED_AT);
 
-    @Mock
-    private Supplier<Instant> instantSupplier;
     @InjectMocks
     private ResourceChangedRequestMapper mapper;
+
+    @Mock
+    private Supplier<Instant> instantSupplier;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Test
     void shouldMapChangedEvent() {
@@ -61,15 +73,50 @@ class ResourceChangedRequestMapperTest {
 
     @ParameterizedTest
     @MethodSource("resourceChangedScenarios")
-    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) {
+    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) throws Exception {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
+        when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
+        when(objectMapper.readValue(anyString(), eq(Object.class))).thenReturn(argument.changedResource().getDeletedData());
 
         // when
         ChangedResource actual = mapper.mapDeletedEvent(argument.request());
 
         // then
         assertEquals(argument.changedResource(), actual);
+        verify(objectMapper).writeValueAsString(argument.request().document().getData());
+        verify(objectMapper).readValue("Data as string", Object.class);
+    }
+
+    @Test
+    void shouldThrowSerDesExceptionWhenJsonProcessingExceptionCaughtDuringSerialisation() throws Exception {
+        // given
+        when(instantSupplier.get()).thenReturn(UPDATED_AT);
+        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+
+        // when
+        Executable ex = () -> mapper.mapDeletedEvent(
+                new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                        getCompanyExemptionsDocument(), true));
+
+        // then
+        assertThrows(SerDesException.class, ex);
+    }
+
+    @Test
+    void shouldThrowSerDesExceptionWhenJsonProcessingExceptionCaughtDuringDeserialisation() throws Exception {
+        // given
+        when(instantSupplier.get()).thenReturn(UPDATED_AT);
+        when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
+        when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
+
+        // when
+        Executable ex = () -> mapper.mapDeletedEvent(
+                new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
+                        getCompanyExemptionsDocument(), true));
+
+        // then
+        assertThrows(SerDesException.class, ex);
     }
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
@@ -99,16 +146,17 @@ class ResourceChangedRequestMapperTest {
     record ResourceChangedTestArgument(ResourceChangedRequest request, ChangedResource changedResource) {
 
         public static ResourceChangedTestArgumentBuilder builder() {
-                return new ResourceChangedTestArgumentBuilder();
-            }
-
-            @Override
-            public String toString() {
-                return this.request.toString();
-            }
+            return new ResourceChangedTestArgumentBuilder();
         }
 
+        @Override
+        public String toString() {
+            return this.request.toString();
+        }
+    }
+
     static class ResourceChangedTestArgumentBuilder {
+
         private ResourceChangedRequest request;
         private String resourceUri;
         private String resourceKind;
