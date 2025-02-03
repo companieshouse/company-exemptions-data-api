@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.NotFoundException;
+import uk.gov.companieshouse.exemptions.exception.SerDesException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -54,8 +55,8 @@ public class ControllerExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Void> handleUnknownException(Exception ex) {
+    @ExceptionHandler(value = {Exception.class, SerDesException.class})
+    public ResponseEntity<Void> handleInternalServerError(Exception ex) {
         LOGGER.error(ex.getClass().getName(), ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
