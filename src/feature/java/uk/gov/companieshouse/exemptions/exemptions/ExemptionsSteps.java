@@ -145,8 +145,7 @@ public class ExemptionsSteps {
 
     @And("the CHS Kafka API service is invoked for upsert with {string}")
     public void verifyChsKafkaApiRuns(String companyNumber) {
-        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, null, false);
+        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(companyNumber, null, false);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
 
@@ -237,8 +236,7 @@ public class ExemptionsSteps {
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
         CompanyExemptionsDocument document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
-        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(
-                CucumberContext.CONTEXT.get("contextId"), companyNumber, document, true);
+        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(companyNumber, document, true);
         verify(exemptionsApiService).invokeChsKafkaApiDelete(resourceChangedRequest);
     }
 

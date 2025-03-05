@@ -38,7 +38,7 @@ import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 @ExtendWith(MockitoExtension.class)
 class ResourceChangedRequestMapperTest {
 
-    private static final String EXPECTED_CONTEXT_ID = "35234234";
+    private static final String EXPECTED_CONTEXT_ID = "uninitialised";
     private static final Instant UPDATED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
     private static final String PUBLISHED_AT = DateUtils.publishedAtString(UPDATED_AT);
 
@@ -54,8 +54,7 @@ class ResourceChangedRequestMapperTest {
     void shouldMapChangedEvent() {
         // given
         ResourceChangedTestArgument argument = ResourceChangedTestArgument.builder()
-                .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                        null, false))
+                .withRequest(new ResourceChangedRequest("12345678", null, false))
                 .withContextId(EXPECTED_CONTEXT_ID)
                 .withResourceUri("company/12345678/exemptions")
                 .withResourceKind("company-exemptions")
@@ -96,8 +95,7 @@ class ResourceChangedRequestMapperTest {
 
         // when
         Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                        getCompanyExemptionsDocument(), true));
+                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
 
         // then
         assertThrows(SerDesException.class, ex);
@@ -112,8 +110,7 @@ class ResourceChangedRequestMapperTest {
 
         // when
         Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                        getCompanyExemptionsDocument(), true));
+                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
 
         // then
         assertThrows(SerDesException.class, ex);
@@ -122,8 +119,7 @@ class ResourceChangedRequestMapperTest {
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
         return Stream.of(
                 ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                                new CompanyExemptionsDocument(), true))
+                        .withRequest(new ResourceChangedRequest("12345678", new CompanyExemptionsDocument(), true))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")
@@ -131,8 +127,7 @@ class ResourceChangedRequestMapperTest {
                         .withEventPublishedAt(PUBLISHED_AT)
                         .build(),
                 ResourceChangedTestArgument.builder()
-                        .withRequest(new ResourceChangedRequest(EXPECTED_CONTEXT_ID, "12345678",
-                                getCompanyExemptionsDocument(), true))
+                        .withRequest(new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true))
                         .withContextId(EXPECTED_CONTEXT_ID)
                         .withResourceUri("company/12345678/exemptions")
                         .withResourceKind("company-exemptions")

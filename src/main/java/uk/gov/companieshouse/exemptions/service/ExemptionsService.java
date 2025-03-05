@@ -4,7 +4,7 @@ import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.InternalExemptionsApi;
 
 public interface ExemptionsService {
-    void upsertCompanyExemptions(String contextId, String companyNumber, InternalExemptionsApi requestBody);
+    void upsertCompanyExemptions(String companyNumber, InternalExemptionsApi requestBody);
     CompanyExemptions getCompanyExemptions(String companyNumber);
-    void deleteCompanyExemptions(String contextId, String companyNumber, String deltaAt);
+    void deleteCompanyExemptions(String companyNumber, String deltaAt);
 }

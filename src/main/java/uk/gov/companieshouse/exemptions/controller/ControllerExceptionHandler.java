@@ -15,6 +15,7 @@ import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.NotFoundException;
 import uk.gov.companieshouse.exemptions.exception.SerDesException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
+import uk.gov.companieshouse.exemptions.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
@@ -25,14 +26,15 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Void> handleNotFound(NotFoundException ex) {
-        LOGGER.error("Unable to locate company exemptions", ex);
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .build();
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<Void> handleConflict() {
+    public ResponseEntity<Void> handleConflict(Exception ex) {
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .build();
@@ -40,7 +42,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<Void> handleServiceUnavailable(ServiceUnavailableException ex) {
-        LOGGER.info("Recoverable exception: %s".formatted(Arrays.toString(ex.getStackTrace())));
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .build();
@@ -49,7 +51,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(value = {BadRequestException.class, DateTimeParseException.class,
             HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Void> handleRequestAndParseError(Exception ex) {
-        LOGGER.error("Invalid request body", ex);
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
@@ -57,7 +59,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(value = {Exception.class, SerDesException.class})
     public ResponseEntity<Void> handleInternalServerError(Exception ex) {
-        LOGGER.error(ex.getClass().getName(), ex);
+        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .build();

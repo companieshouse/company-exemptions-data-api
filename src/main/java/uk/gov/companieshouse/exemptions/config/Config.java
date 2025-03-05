@@ -26,10 +26,6 @@ import uk.gov.companieshouse.logging.LoggerFactory;
 
 @Configuration
 public class Config {
-    @Bean
-    public Logger logger() {
-        return LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
-    }
 
     @Bean
     public Supplier<Instant> instantSupplier() {

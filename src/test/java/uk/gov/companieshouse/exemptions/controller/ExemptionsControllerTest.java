@@ -144,7 +144,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsServerError() throws Exception {
         // given
         doThrow(ServiceUnavailableException.class).when(exemptionsService)
-                .upsertCompanyExemptions(anyString(), anyString(),any());
+                .upsertCompanyExemptions(anyString(),any());
 
         // when
         ResultActions result = mockMvc.perform(put(URI)
@@ -164,7 +164,7 @@ class ExemptionsControllerTest {
     void upsertCompanyExemptionsClientError() throws Exception {
         // given
         doThrow(ConflictException.class).when(exemptionsService)
-                .upsertCompanyExemptions(anyString(), anyString(),any());
+                .upsertCompanyExemptions(anyString(),any());
 
         // when
         ResultActions result = mockMvc.perform(put(URI)
@@ -278,7 +278,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsServerError() throws Exception {
         // given
         doThrow(ServiceUnavailableException.class).when(exemptionsService)
-                .deleteCompanyExemptions(anyString(), anyString(), anyString());
+                .deleteCompanyExemptions(anyString(), anyString());
 
         // when
         ResultActions result = mockMvc.perform(delete(URI)
@@ -298,7 +298,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsNotFound() throws Exception {
         // given
         doThrow(NotFoundException.class).when(exemptionsService)
-                .deleteCompanyExemptions(anyString(), anyString(), anyString());
+                .deleteCompanyExemptions(anyString(), anyString());
 
         // when
         ResultActions result = mockMvc.perform(delete(URI)
@@ -318,7 +318,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsBadRequest() throws Exception {
         // given
         doThrow(BadRequestException.class).when(exemptionsService)
-                .deleteCompanyExemptions(anyString(), anyString(), anyString());
+                .deleteCompanyExemptions(anyString(), anyString());
 
         // when
         ResultActions result = mockMvc.perform(delete(URI)
@@ -338,7 +338,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsGenericRuntimeException() throws Exception {
         // given
         doThrow(RuntimeException.class).when(exemptionsService)
-                .deleteCompanyExemptions(anyString(), anyString(), anyString());
+                .deleteCompanyExemptions(anyString(), anyString());
 
         // when
         ResultActions result = mockMvc.perform(delete(URI)
@@ -358,7 +358,7 @@ class ExemptionsControllerTest {
     void deleteCompanyExemptionsConflict() throws Exception {
         // given
         doThrow(ConflictException.class).when(exemptionsService)
-                .deleteCompanyExemptions(anyString(), anyString(), anyString());
+                .deleteCompanyExemptions(anyString(), anyString());
 
         // when
         ResultActions result = mockMvc.perform(delete(URI)
