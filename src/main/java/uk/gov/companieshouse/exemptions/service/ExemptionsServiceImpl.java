@@ -60,17 +60,18 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().at())));
 
                 repository.save(document);
+                LOGGER.info("Company exemption is updated in mongo", DataMapHolder.getLogMap());
 
                 exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(companyNumber, null, false));
             } else {
                 throw new ConflictException("Record not persisted as it is not the latest record");
             }
         } catch (IllegalArgumentException ex) {
-            LOGGER.error("Illegal argument exception caught when processing upsert", ex, DataMapHolder.getLogMap());
-            throw new BadRequestException("Illegal argument exception caught when processing upsert");
+            LOGGER.error("Error calling chs-kafka-api", ex, DataMapHolder.getLogMap());
+            throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.error("Error connecting to MongoDB", DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException("Error connecting to MongoDB");
+            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(ex.getMessage());
         }
     }
 
@@ -81,8 +82,8 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                     .orElseThrow(() -> new NotFoundException(String.format(
                             "Exemptions does not exist for company: %s ", companyNumber)));
         } catch (DataAccessException ex) {
-            LOGGER.error("Failed to connect to MongoDb", ex, DataMapHolder.getLogMap());
-            throw new ServiceUnavailableException("Data access exception thrown when calling Mongo Repository");
+            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
+            throw new ServiceUnavailableException(ex.getMessage());
         }
     }
 
@@ -105,14 +106,14 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 LOGGER.info("Company exemptions deleted in mongoDB successfully", DataMapHolder.getLogMap());
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, doc, true));
             }, () -> {
-                LOGGER.error("Delete for non-existent document", DataMapHolder.getLogMap());
+                LOGGER.info("Delete for non-existent exemptions document", DataMapHolder.getLogMap());
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, new CompanyExemptionsDocument(), true));
             });
         } catch (IllegalArgumentException ex) {
-            LOGGER.error("Error calling chs-kafka-api", DataMapHolder.getLogMap());
+            LOGGER.error("Error calling chs-kafka-api", ex, DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.error("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
