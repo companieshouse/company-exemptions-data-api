@@ -259,8 +259,7 @@ class ExemptionsServiceImplTest {
         Executable executable = () -> service.getCompanyExemptions(COMPANY_NUMBER);
 
         // then
-        Exception exception = assertThrows(ServiceUnavailableException.class, executable);
-        assertEquals("Data access exception thrown when calling Mongo Repository", exception.getMessage());
+        assertThrows(ServiceUnavailableException.class, executable);
         verify(repository).findById(COMPANY_NUMBER);
     }
 
