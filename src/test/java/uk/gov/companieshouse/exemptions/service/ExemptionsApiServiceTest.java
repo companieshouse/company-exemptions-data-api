@@ -22,6 +22,7 @@ import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.error.ApiErrorResponseException;
 import uk.gov.companieshouse.api.handler.chskafka.PrivateChangedResourceHandler;
 import uk.gov.companieshouse.api.handler.chskafka.request.PrivateChangedResourcePost;
+import uk.gov.companieshouse.api.http.HttpClient;
 import uk.gov.companieshouse.api.model.ApiResponse;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
@@ -53,6 +54,8 @@ class ExemptionsApiServiceTest {
     private ResourceChangedRequest resourceChangedRequest;
     @Mock
     private ChangedResource changedResource;
+    @Mock
+    private HttpClient httpClient;
 
     @Test
     @DisplayName("Test should successfully invoke chs-kafka-api")
@@ -60,6 +63,7 @@ class ExemptionsApiServiceTest {
         // given
         when(apiClientSupplier.get()).thenReturn(internalApiClient);
         when(internalApiClient.privateChangedResourceHandler()).thenReturn(privateChangedResourceHandler);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
         when(privateChangedResourceHandler.postChangedResource(any(), any())).thenReturn(changedResourcePost);
         when(changedResourcePost.execute()).thenReturn(response);
         when(mapper.mapChangedEvent(resourceChangedRequest)).thenReturn(changedResource);
@@ -84,6 +88,7 @@ class ExemptionsApiServiceTest {
     void invokeChsKafkaApiError(final int statusCode, final String statusMessage) throws ApiErrorResponseException {
         // given
         setupExceptionScenario(statusCode, statusMessage);
+        when(internalApiClient.getHttpClient()).thenReturn(httpClient);
 
         // when
         Executable actual = () -> exemptionsApiService.invokeChsKafkaApi(resourceChangedRequest);
