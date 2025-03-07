@@ -64,13 +64,14 @@ public class ExemptionsServiceImpl implements ExemptionsService {
 
                 exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(companyNumber, null, false));
             } else {
+                LOGGER.error("Record not persisted as it is not the latest record", DataMapHolder.getLogMap());
                 throw new ConflictException("Record not persisted as it is not the latest record");
             }
         } catch (IllegalArgumentException ex) {
-            LOGGER.error("Error calling chs-kafka-api", ex, DataMapHolder.getLogMap());
+            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
+            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -82,7 +83,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                     .orElseThrow(() -> new NotFoundException(String.format(
                             "Exemptions does not exist for company: %s ", companyNumber)));
         } catch (DataAccessException ex) {
-            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
+            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -98,8 +99,10 @@ public class ExemptionsServiceImpl implements ExemptionsService {
             document.ifPresentOrElse(doc -> {
                 String existingDeltaAt = doc.getDeltaAt();
                 if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-                    throw new ConflictException(String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
-                            requestDeltaAt, existingDeltaAt));
+                    final String msg = String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
+                            requestDeltaAt, existingDeltaAt);
+                    LOGGER.error(msg);
+                    throw new ConflictException(msg);
                 }
 
                 repository.deleteById(companyNumber);
@@ -110,10 +113,10 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, new CompanyExemptionsDocument(), true));
             });
         } catch (IllegalArgumentException ex) {
-            LOGGER.error("Error calling chs-kafka-api", ex, DataMapHolder.getLogMap());
+            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.error("Error connecting to MongoDB", ex, DataMapHolder.getLogMap());
+            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }

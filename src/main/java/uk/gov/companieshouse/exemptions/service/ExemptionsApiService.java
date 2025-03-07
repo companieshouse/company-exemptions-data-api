@@ -39,6 +39,7 @@ public class ExemptionsApiService {
      */
     public void invokeChsKafkaApi(ResourceChangedRequest resourceChangedRequest) {
         InternalApiClient internalApiClient = apiClientSupplier.get();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
@@ -46,13 +47,14 @@ public class ExemptionsApiService {
         try {
             changedResourcePost.execute();
         } catch (ApiErrorResponseException ex) {
-            LOGGER.error("Resource changed call failed: %s".formatted(ex.getStatusCode()), DataMapHolder.getLogMap());
+            LOGGER.info("Resource changed call failed: %s".formatted(ex.getStatusCode()), DataMapHolder.getLogMap());
             throw new ServiceUnavailableException("Error calling resource changed endpoint");
         }
     }
 
     public void invokeChsKafkaApiDelete(ResourceChangedRequest resourceChangedRequest) {
         InternalApiClient internalApiClient = apiClientSupplier.get();
+        internalApiClient.getHttpClient().setRequestId(DataMapHolder.getRequestId());
 
         PrivateChangedResourcePost changedResourcePost =
                 internalApiClient.privateChangedResourceHandler().postChangedResource(
@@ -60,7 +62,7 @@ public class ExemptionsApiService {
         try {
             changedResourcePost.execute();
         } catch (ApiErrorResponseException ex) {
-            LOGGER.error("Resource changed call failed: %s".formatted(ex.getStatusCode()), DataMapHolder.getLogMap());
+            LOGGER.info("Resource changed call failed: %s".formatted(ex.getStatusCode()), DataMapHolder.getLogMap());
             throw new ServiceUnavailableException("Error calling resource changed endpoint");
         }
     }

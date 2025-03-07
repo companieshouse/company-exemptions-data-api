@@ -3,7 +3,6 @@ package uk.gov.companieshouse.exemptions.controller;
 import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
 
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -26,7 +25,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Void> handleNotFound(NotFoundException ex) {
-        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
+        LOGGER.info(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .build();
@@ -34,7 +33,6 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Void> handleConflict(Exception ex) {
-        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .build();
@@ -42,7 +40,6 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<Void> handleServiceUnavailable(ServiceUnavailableException ex) {
-        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.SERVICE_UNAVAILABLE)
                 .build();
@@ -51,7 +48,7 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(value = {BadRequestException.class, DateTimeParseException.class,
             HttpMessageNotReadableException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Void> handleRequestAndParseError(Exception ex) {
-        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
+        LOGGER.error(ex.getMessage(), ex, DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .build();
@@ -59,7 +56,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(value = {Exception.class, SerDesException.class})
     public ResponseEntity<Void> handleInternalServerError(Exception ex) {
-        LOGGER.error(ex.getMessage(), DataMapHolder.getLogMap());
+        LOGGER.error(ex.getMessage(), ex, DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .build();

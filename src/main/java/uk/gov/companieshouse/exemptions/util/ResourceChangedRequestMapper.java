@@ -44,7 +44,7 @@ public class ResourceChangedRequestMapper {
             return changedResource;
         } catch (JsonProcessingException ex) {
             final String msg = "Failed to serialise/deserialise deleted data";
-            LOGGER.error(msg);
+            LOGGER.error(msg, DataMapHolder.getLogMap());
             throw new SerDesException(msg, ex);
         }
     }
