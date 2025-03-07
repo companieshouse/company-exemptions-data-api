@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.exemptions.exception.SerDesException;
+import uk.gov.companieshouse.exemptions.logging.DataMapHolder;
 import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
@@ -43,7 +44,7 @@ public class ResourceChangedRequestMapper {
             return changedResource;
         } catch (JsonProcessingException ex) {
             final String msg = "Failed to serialise/deserialise deleted data";
-            LOGGER.error(msg);
+            LOGGER.error(msg, DataMapHolder.getLogMap());
             throw new SerDesException(msg, ex);
         }
     }
@@ -56,6 +57,6 @@ public class ResourceChangedRequestMapper {
                 .resourceUri(String.format("company/%s/exemptions", request.companyNumber()))
                 .resourceKind("company-exemptions")
                 .event(event)
-                .contextId(request.contextId());
+                .contextId(DataMapHolder.getRequestId());
     }
 }

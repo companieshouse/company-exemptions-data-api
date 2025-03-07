@@ -23,7 +23,7 @@ class ResourceChangedRequestMapperIT {
     @Test
     void shouldRemoveNullValuesFromDeletedDataUsingObjectMapper() {
         // given
-        ResourceChangedRequest request = new ResourceChangedRequest(CONTEXT_ID, COMPANY_NUMBER, new CompanyExemptionsDocument()
+        ResourceChangedRequest request = new ResourceChangedRequest(COMPANY_NUMBER, new CompanyExemptionsDocument()
                 .setData(new CompanyExemptions()
                         .exemptions(new Exemptions())), true);
 

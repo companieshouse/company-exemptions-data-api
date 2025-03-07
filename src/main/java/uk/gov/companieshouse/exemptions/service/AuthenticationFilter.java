@@ -1,5 +1,7 @@
 package uk.gov.companieshouse.exemptions.service;
 
+import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION_NAME_SPACE;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,15 +12,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.web.filter.OncePerRequestFilter;
+import uk.gov.companieshouse.exemptions.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
+import uk.gov.companieshouse.logging.LoggerFactory;
 
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private final Logger authLogger;
-
-    public AuthenticationFilter(Logger logger) {
-        this.authLogger = logger;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,7 +28,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         String ericIdentity = request.getHeader("ERIC-Identity");
 
         if (StringUtils.isBlank(ericIdentity)) {
-            authLogger.error("Request received without eric identity");
+            LOGGER.error("Request received without eric identity", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -37,13 +37,13 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
         if (!("key".equalsIgnoreCase(ericIdentityType)
                 || ("oauth2".equalsIgnoreCase(ericIdentityType)))) {
-            authLogger.error("Request received without correct eric identity type");
+            LOGGER.error("Request received without correct eric identity type", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         if (!isKeyAuthorised(request, ericIdentityType)) {
-            authLogger.info("Supplied key does not have sufficient privilege for the action");
+            LOGGER.info("Supplied key does not have sufficient privilege for the action", DataMapHolder.getLogMap());
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }

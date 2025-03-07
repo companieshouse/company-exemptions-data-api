@@ -11,11 +11,12 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
+import uk.gov.companieshouse.exemptions.logging.DataMapHolder;
 import uk.gov.companieshouse.logging.Logger;
 import uk.gov.companieshouse.logging.LoggerFactory;
 
 public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
-    private final Logger logger = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
 
     @Override
     public LocalDate deserialize(JsonParser jsonParser, DeserializationContext
@@ -36,7 +37,7 @@ public class LocalDateDeSerializer extends JsonDeserializer<LocalDate> {
                     LocalDate.parse(dateNode.textValue(), dateTimeFormatter) :
                     LocalDate.ofInstant(Instant.ofEpochMilli(dateNode.get("$numberLong").asLong()), ZoneId.systemDefault());
         } catch (Exception exception) {
-            logger.error("Deserialization failed.", exception);
+            LOGGER.error("Deserialization failed.", exception, DataMapHolder.getLogMap());
             throw new BadRequestException(exception.getMessage());
         }
     }
