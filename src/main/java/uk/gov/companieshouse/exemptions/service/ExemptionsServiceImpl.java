@@ -101,7 +101,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
                     final String msg = String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
                             requestDeltaAt, existingDeltaAt);
-                    LOGGER.error(msg);
+                    LOGGER.error(msg, DataMapHolder.getLogMap());
                     throw new ConflictException(msg);
                 }
 
