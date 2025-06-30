@@ -19,6 +19,7 @@
 		<spring.boot.version>3.5.3</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<opentelemetry.version>2.14.0</opentelemetry.version>
 
 		<!-- tests -->
 		<maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
@@ -40,6 +41,13 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>io.opentelemetry.instrumentation</groupId>
+				<artifactId>opentelemetry-instrumentation-bom</artifactId>
+				<version>${opentelemetry.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-dependencies</artifactId>
 				<version>${spring.boot.version}</version>
@@ -59,7 +67,10 @@
 	<dependencies>
 		<!--		Transitive deps start here-->
 		<!--		Transitive deps end here-->
-
+		<dependency>
+			<groupId>io.opentelemetry.instrumentation</groupId>
+			<artifactId>opentelemetry-spring-boot-starter</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
