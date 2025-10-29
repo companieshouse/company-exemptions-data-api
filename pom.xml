@@ -26,7 +26,7 @@
 		<maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
 		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
 		<jib-maven-plugin.version>3.4.6</jib-maven-plugin.version>
-		<cucumber.version>7.23.0</cucumber.version>
+		<cucumber.version>7.23.0</cucumber.version> <!-- Upgrading cucumber version causes issues on pipeline due to junit engine -->
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
 
