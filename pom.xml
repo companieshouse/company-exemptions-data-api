@@ -16,26 +16,26 @@
 		<java.version>21</java.version>
 
 		<maven-build-helper-plugin.version>3.6.1</maven-build-helper-plugin.version>
-		<spring.boot.version>3.5.3</spring.boot.version>
+		<spring.boot.version>3.5.7</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<opentelemetry.version>2.14.0</opentelemetry.version>
+		<opentelemetry.version>2.21.0</opentelemetry.version>
 
 		<!-- tests -->
 		<maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
 		<maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
 		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
 		<jib-maven-plugin.version>3.4.6</jib-maven-plugin.version>
-		<cucumber.version>7.23.0</cucumber.version>
+		<cucumber.version>7.23.0</cucumber.version> <!-- Upgrading cucumber version causes issues on pipeline due to junit engine -->
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
 
 		<!-- internal -->
-		<structured-logging.version>3.0.32</structured-logging.version>
-		<private-api-sdk-java.version>4.0.312</private-api-sdk-java.version>
-		<api-sdk-manager-java-library.version>3.0.7</api-sdk-manager-java-library.version>
-		<api-security-java.version>2.0.8</api-security-java.version>
-		<api-helper-java-library.version>3.0.1</api-helper-java-library.version>
+		<structured-logging.version>3.0.43</structured-logging.version>
+		<private-api-sdk-java.version>4.0.404</private-api-sdk-java.version>
+		<api-sdk-manager-java-library.version>3.0.13</api-sdk-manager-java-library.version>
+		<api-security-java.version>2.0.16</api-security-java.version>
+		<api-helper-java-library.version>3.0.3</api-helper-java-library.version>
 
 	</properties>
 	<dependencyManagement>
@@ -66,6 +66,11 @@
 
 	<dependencies>
 		<!--		Transitive deps start here-->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.18.0</version>
+		</dependency>
 		<!--		Transitive deps end here-->
 		<dependency>
 			<groupId>io.opentelemetry.instrumentation</groupId>

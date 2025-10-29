@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CsrfFilter;
 import uk.gov.companieshouse.api.filter.CustomCorsFilter;
 import uk.gov.companieshouse.exemptions.service.AuthenticationFilter;
-import uk.gov.companieshouse.logging.Logger;
 
 @Configuration
 @EnableWebSecurity
@@ -45,7 +44,7 @@ public class WebSecurityConfig {
      */
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/company-exemptions/healthcheck");
+        return web -> web.ignoring().requestMatchers("/healthcheck");
     }
 
     @Bean

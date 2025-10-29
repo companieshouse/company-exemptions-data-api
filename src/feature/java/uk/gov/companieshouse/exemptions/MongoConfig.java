@@ -11,7 +11,7 @@ import org.testcontainers.utility.DockerImageName;
 public class MongoConfig {
 
     public static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
-            DockerImageName.parse("mongo:4.0.10"));
+            DockerImageName.parse("mongo:7.0.17"));
 
     @DynamicPropertySource
     public static void setProperties(DynamicPropertyRegistry registry) {
