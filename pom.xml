@@ -37,6 +37,16 @@
 		<api-security-java.version>2.0.16</api-security-java.version>
 		<api-helper-java-library.version>3.0.3</api-helper-java-library.version>
 
+        <!-- Sonar -->
+        <sonar.projectName>company-exemptions-data-api</sonar.projectName>
+        <!--suppress UnresolvedMavenProperty -->
+        <sonar.host.url>${CODE_ANALYSIS_HOST_URL}</sonar.host.url>
+        <!--suppress UnresolvedMavenProperty -->
+        <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
+        <sonar.login/>
+        <sonar.password/>
+        <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+
 	</properties>
 	<dependencyManagement>
 		<dependencies>
