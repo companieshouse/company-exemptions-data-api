@@ -50,6 +50,7 @@
 		<tomcat-embed-dependencies.version>10.1.55</tomcat-embed-dependencies.version>
 		<log4j-api.version>2.26.0</log4j-api.version>
 		<tomcat-embed-core.version>11.0.10</tomcat-embed-core.version>
+		<kotlin-override.version>2.1.21</kotlin-override.version>
 	</properties>
 
 	<dependencyManagement>
@@ -103,6 +104,28 @@
 				<artifactId>log4j-to-slf4j</artifactId>
 				<version>${log4j-api.version}</version>
 			</dependency>
+
+			<!-- CVE-2020-29582 -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib</artifactId>
+				<version>${kotlin-override.version}</version>
+			</dependency>
+
+			<!-- CVE-2020-29582 -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib-jdk7</artifactId>
+				<version>${kotlin-override.version}</version>
+			</dependency>
+
+			<!-- CVE-2020-29582 -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-stdlib-jdk8</artifactId>
+				<version>${kotlin-override.version}</version>
+			</dependency>
+
 		</dependencies>
 
 	</dependencyManagement>
