@@ -9,9 +9,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,28 +36,28 @@ class AuthenticationFilterTest {
     @InjectMocks
     private AuthenticationFilter filter;
 
-    @Test
-    @DisplayName("OAUTH2 GET request passes filter")
-    void doFilterInternal() throws ServletException, IOException {
-        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
-        when(request.getHeader("ERIC-Identity-Type")).thenReturn("OAUTH2");
-        when(request.getMethod()).thenReturn("GET");
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        verify(filterChain, times(1)).doFilter(request, response);
+    private static Stream<Arguments> filterInternalTestArguments() {
+        return Stream.of(
+                Arguments.of("OAUTH2", "GET", 1),
+                Arguments.of("KEY", "GET", 1),
+                Arguments.of("OAUTH2", "PUT", 0),
+                Arguments.of("KEY", "PUT", 0)
+        );
     }
 
-    @Test
-    @DisplayName("KEY type GET request passes filter")
-    void doFilterInternalKey() throws ServletException, IOException {
+    @ParameterizedTest
+    @MethodSource("filterInternalTestArguments")
+    @DisplayName("Filter internal requests pass filter")
+    void doFilterInternal(String ericIdentityType,
+                          String method,
+                          int expectedFilterInvocations) throws ServletException, IOException {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
-        when(request.getHeader("ERIC-Identity-Type")).thenReturn("KEY");
-        when(request.getMethod()).thenReturn("GET");
+        when(request.getHeader("ERIC-Identity-Type")).thenReturn(ericIdentityType);
+        when(request.getMethod()).thenReturn(method);
 
         filter.doFilterInternal(request, response, filterChain);
 
-        verify(filterChain, times(1)).doFilter(request, response);
+        verify(filterChain, times(expectedFilterInvocations)).doFilter(request, response);
     }
 
     @Test
@@ -111,35 +116,11 @@ class AuthenticationFilterTest {
     }
 
     @Test
-    @DisplayName("PUT Request with OAUTH2 type fails")
-    void doFilterInternalOauth2WrongMethod() throws ServletException, IOException {
-        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
-        when(request.getHeader("ERIC-Identity-Type")).thenReturn("OAUTH2");
-        when(request.getMethod()).thenReturn("PUT");
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        verify(filterChain, times(0)).doFilter(request, response);
-    }
-
-    @Test
     @DisplayName("PUT Request with OAUTH2 type and internal app privilege fails")
     void doFilterInternalOauth2WrongMethodWithPrivilege() throws ServletException, IOException {
         when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
         when(request.getHeader("ERIC-Identity-Type")).thenReturn("oauth2");
         when(request.getHeader("ERIC-Authorised-Key-Privileges")).thenReturn("internal-app");
-        when(request.getMethod()).thenReturn("PUT");
-
-        filter.doFilterInternal(request, response, filterChain);
-
-        verify(filterChain, times(0)).doFilter(request, response);
-    }
-
-    @Test
-    @DisplayName("PUT Request with KEY type with no privileges fails")
-    void doFilterInternalKeyNoPrivileges() throws ServletException, IOException {
-        when(request.getHeader("ERIC-Identity")).thenReturn("SOME-IDENTITY");
-        when(request.getHeader("ERIC-Identity-Type")).thenReturn("KEY");
         when(request.getMethod()).thenReturn("PUT");
 
         filter.doFilterInternal(request, response, filterChain);

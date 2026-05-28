@@ -29,6 +29,8 @@ public class ExemptionsServiceImpl implements ExemptionsService {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").withZone(ZoneId.of("Z"));
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final String ERROR_CONNECTING_TO_MONGO_DB = "Error connecting to MongoDB";
+    private static final String ERROR_CALLING_CHS_KAFKA_API = "Error calling chs-kafka-api";
 
     private final ExemptionsRepository repository;
     private final ExemptionsMapper mapper;
@@ -68,10 +70,10 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 throw new ConflictException("Record not persisted as it is not the latest record");
             }
         } catch (IllegalArgumentException ex) {
-            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CALLING_CHS_KAFKA_API, DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -83,7 +85,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                     .orElseThrow(() -> new NotFoundException(String.format(
                             "Exemptions does not exist for company: %s ", companyNumber)));
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -113,10 +115,10 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, new CompanyExemptionsDocument(), true));
             });
         } catch (IllegalArgumentException ex) {
-            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CALLING_CHS_KAFKA_API, DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
