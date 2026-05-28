@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsReadException;
 
 class ExemptionsReadConverterTest {
 
@@ -29,13 +30,13 @@ class ExemptionsReadConverterTest {
     }
 
     @Test
-    void throwRuntimeExceptionWhenNullIsPassedIn() {
+    void throwExemptionsReadExceptionWhenNullIsPassedIn() {
         // given
 
         // when
         Executable actual = () -> converter.convert(null);
 
         // then
-        assertThrows(RuntimeException.class, actual);
+        assertThrows(ExemptionsReadException.class, actual);
     }
 }
