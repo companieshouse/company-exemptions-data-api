@@ -46,6 +46,10 @@
         <sonar.login/>
         <sonar.password/>
         <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+
+		<tomcat-embed-dependencies.version>10.1.55</tomcat-embed-dependencies.version>
+		<log4j-api.version>2.26.0</log4j-api.version>
+		<tomcat-embed-core.version>11.0.10</tomcat-embed-core.version>
 	</properties>
 
 	<dependencyManagement>
@@ -71,7 +75,36 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-core</artifactId>
+				<version>${tomcat-embed-dependencies.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-websocket</artifactId>
+				<version>${tomcat-embed-dependencies.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-el</artifactId>
+				<version>${tomcat-embed-dependencies.version}</version>
+			</dependency>
+
+			<!-- Pinning version to address CVE-2025-68161(6.3) log4j-api pulled transitively-->
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-to-slf4j</artifactId>
+				<version>${log4j-api.version}</version>
+			</dependency>
 		</dependencies>
+
 	</dependencyManagement>
 
 	<dependencies>
