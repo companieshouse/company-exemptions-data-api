@@ -3,6 +3,10 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.Document;
@@ -29,8 +33,14 @@ class ExemptionsReadConverterTest {
     }
 
     @Test
-    void throwExemptionsReadExceptionWhenNullIsPassedIn() {
-        assertThatThrownBy(() -> converter.convert(null))
+    void throwExemptionsReadExceptionWhenNullIsPassedIn() throws Exception {
+        final var mockObjectMapper = mock(ObjectMapper.class);
+        when(mockObjectMapper.readValue(anyString(), eq(CompanyExemptions.class)))
+                .thenThrow(new NullPointerException("Test error"));
+
+        final var mockedConverter = new ExemptionsReadConverter(mockObjectMapper);
+
+        assertThatThrownBy(() -> mockedConverter.convert(null))
                 .isInstanceOf(ExemptionsReadException.class);
     }
 }

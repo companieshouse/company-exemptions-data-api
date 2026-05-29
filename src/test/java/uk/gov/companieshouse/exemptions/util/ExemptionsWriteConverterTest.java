@@ -3,7 +3,11 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import org.junit.jupiter.api.Test;
@@ -31,8 +35,13 @@ class ExemptionsWriteConverterTest {
     }
 
     @Test
-    void throwExemptionsWriteExceptionWhenNullIsPassedIn() {
-        assertThatThrownBy(() -> converter.convert(null))
+    void throwExemptionsWriteExceptionWhenNullIsPassedIn() throws JsonProcessingException {
+        final var mockObjectMapper = mock(ObjectMapper.class);
+        when(mockObjectMapper.writeValueAsString(any())).thenThrow(new NullPointerException());
+
+        final var mockedConverter = new ExemptionsWriteConverter(mockObjectMapper);
+
+        assertThatThrownBy(() -> mockedConverter.convert(null))
                 .isInstanceOf(ExemptionsWriteException.class);
     }
 }
