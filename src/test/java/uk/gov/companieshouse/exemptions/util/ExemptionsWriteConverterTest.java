@@ -9,7 +9,6 @@ import com.mongodb.BasicDBObject;
 import org.junit.jupiter.api.Test;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
-import uk.gov.companieshouse.exemptions.exception.ExemptionsReadException;
 import uk.gov.companieshouse.exemptions.exception.ExemptionsWriteException;
 
 class ExemptionsWriteConverterTest {
