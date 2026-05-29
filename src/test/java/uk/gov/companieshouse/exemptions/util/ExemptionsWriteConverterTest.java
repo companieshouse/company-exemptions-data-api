@@ -1,15 +1,15 @@
 package uk.gov.companieshouse.exemptions.util;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.BasicDBObject;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsReadException;
 import uk.gov.companieshouse.exemptions.exception.ExemptionsWriteException;
 
 class ExemptionsWriteConverterTest {
@@ -33,12 +33,7 @@ class ExemptionsWriteConverterTest {
 
     @Test
     void throwExemptionsWriteExceptionWhenNullIsPassedIn() {
-        // given
-
-        // when
-        Executable actual = () -> converter.convert(null);
-
-        // then
-        assertThrows(ExemptionsWriteException.class, actual);
+        assertThatThrownBy(() -> converter.convert(null))
+                .isInstanceOf(ExemptionsWriteException.class);
     }
 }
