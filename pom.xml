@@ -19,7 +19,7 @@
 		<spring.boot.version>3.5.14</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<opentelemetry.version>2.21.0</opentelemetry.version>
+		<opentelemetry.version>2.22.0</opentelemetry.version>
 
 		<!-- tests -->
 		<maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
@@ -32,7 +32,8 @@
 
 		<!-- internal -->
 		<structured-logging.version>3.0.43</structured-logging.version>
-		<private-api-sdk-java.version>4.0.404</private-api-sdk-java.version>
+		<private-api-sdk-java.version>6.0.23</private-api-sdk-java.version>
+<!--		<private-api-sdk-java.version>4.0.404</private-api-sdk-java.version>-->
 		<api-sdk-manager-java-library.version>3.0.13</api-sdk-manager-java-library.version>
 		<api-security-java.version>2.0.16</api-security-java.version>
 		<api-helper-java-library.version>3.0.3</api-helper-java-library.version>
