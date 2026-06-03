@@ -1,11 +1,11 @@
 package uk.gov.companieshouse.exemptions;
 
 import io.cucumber.spring.CucumberContextConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -15,7 +15,7 @@ import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 @ActiveProfiles({"test"})
 public class Configuration extends MongoConfig {
 
-    @MockBean
+    @MockitoBean
     public ExemptionsApiService exemptionsApiService;
 
 }
