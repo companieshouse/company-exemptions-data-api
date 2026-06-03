@@ -50,6 +50,7 @@
 
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
 		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
+		<junit-override.version>6.0.3</junit-override.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -265,16 +266,19 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-params</artifactId>
+			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
