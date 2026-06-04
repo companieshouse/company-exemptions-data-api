@@ -17,7 +17,6 @@
 
 		<maven-build-helper-plugin.version>3.6.1</maven-build-helper-plugin.version>
 		<spring.boot.version>4.0.6</spring.boot.version>
-		<spring.boot.version>4.0.6</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<opentelemetry.version>2.28.1</opentelemetry.version>
@@ -27,16 +26,16 @@
 		<maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
 		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
 		<jib-maven-plugin.version>3.4.6</jib-maven-plugin.version>
-		<cucumber.version>7.23.0</cucumber.version> <!-- Upgrading cucumber version causes issues on pipeline due to junit engine -->
+		<cucumber.version>7.23.0</cucumber.version>
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
 
 		<!-- internal -->
-		<structured-logging.version>3.0.43</structured-logging.version>
+		<structured-logging.version>3.0.57</structured-logging.version>
 		<private-api-sdk-java.version>6.0.23</private-api-sdk-java.version>
-		<api-sdk-manager-java-library.version>3.0.13</api-sdk-manager-java-library.version>
-		<api-security-java.version>2.0.16</api-security-java.version>
-		<api-helper-java-library.version>3.0.3</api-helper-java-library.version>
+		<api-sdk-manager-java-library.version>3.0.23</api-sdk-manager-java-library.version>
+		<api-security-java.version>2.0.27</api-security-java.version>
+		<api-helper-java-library.version>3.0.4</api-helper-java-library.version>
 
         <!-- Sonar -->
         <sonar.projectName>company-exemptions-data-api</sonar.projectName>
@@ -58,7 +57,7 @@
 			<dependency>
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-dependency-bom</artifactId>
-				<version>0.1.2</version>
+				<version>0.1.3</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
