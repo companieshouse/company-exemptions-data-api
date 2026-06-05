@@ -47,7 +47,8 @@
 
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
 		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
-		<junit-override.version>6.0.3</junit-override.version>
+
+		<ch-bom.version>0.1.5</ch-bom.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -55,16 +56,16 @@
 			<dependency>
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-dependency-bom</artifactId>
-				<version>0.1.3</version>
+				<version>${ch-bom.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 
-			<!-- Import the CH Dependency BOM to manage versions of common dependencies -->
+			<!-- Import the CH Test BOM to manage versions of common dependencies -->
 			<dependency>
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-test-bom</artifactId>
-				<version>0.1.3</version>
+				<version>${ch-bom.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -212,12 +213,8 @@
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
-					<groupId>org.junit.jupiter</groupId>
-					<artifactId>junit-jupiter-engine</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-code</artifactId>
+					<artifactId>jackson-core</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -283,7 +280,6 @@
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-helper-java</artifactId>
-<!--			<version>${api-helper-java-library.version}</version>-->
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -344,19 +340,16 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-params</artifactId>
-			<version>${junit-override.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
