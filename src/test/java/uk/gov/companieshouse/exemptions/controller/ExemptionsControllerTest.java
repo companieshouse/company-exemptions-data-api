@@ -16,14 +16,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.time.LocalDate;
 import java.util.Collections;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,8 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 import uk.gov.companieshouse.api.exemptions.ExemptionItem;
@@ -68,7 +63,7 @@ class ExemptionsControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper mapper;
 
     @MockitoBean
     private Logger logger;
@@ -80,20 +75,13 @@ class ExemptionsControllerTest {
             .excludeFieldsWithoutExposeAnnotation()
             .create();
 
-    @BeforeEach
-    void setUp() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
-
     @Test
     @DisplayName("Successful upsert request")
     void upsertCompanyExemptions() throws Exception {
         // given
 
         // when
-        ResultActions result = mockMvc.perform(put(URI)
+        final var result = mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -111,7 +99,7 @@ class ExemptionsControllerTest {
         // given
 
         // when
-        ResultActions result = mockMvc.perform(put(URI)
+        final var result = mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -128,7 +116,7 @@ class ExemptionsControllerTest {
         // given
 
         // when
-        ResultActions result = mockMvc.perform(put(URI)
+        final var result = mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -147,7 +135,7 @@ class ExemptionsControllerTest {
                 .upsertCompanyExemptions(anyString(),any());
 
         // when
-        ResultActions result = mockMvc.perform(put(URI)
+        final var result = mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -167,7 +155,7 @@ class ExemptionsControllerTest {
                 .upsertCompanyExemptions(anyString(),any());
 
         // when
-        ResultActions result = mockMvc.perform(put(URI)
+        final var result = mockMvc.perform(put(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -183,11 +171,11 @@ class ExemptionsControllerTest {
     @DisplayName("Successful get company exemptions request")
     void getCompanyExemptions() throws Exception {
         // given
-        CompanyExemptions data = getExemptionsData();
+        final var data = getExemptionsData();
         doReturn(data).when(exemptionsService).getCompanyExemptions(COMPANY_NUMBER);
 
         // when
-        MvcResult result = mockMvc.perform(get(GET_URI)
+        final var result = mockMvc.perform(get(GET_URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -196,18 +184,18 @@ class ExemptionsControllerTest {
                 .andReturn();
 
         // then
-        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
+        assertEquals(data, mapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
     }
 
     @Test
     @DisplayName("Successful get company exemptions request with oauth2")
     void getCompanyExemptionsOauth2() throws Exception {
         // given
-        CompanyExemptions data = getExemptionsData();
+        final var data = getExemptionsData();
         doReturn(data).when(exemptionsService).getCompanyExemptions(COMPANY_NUMBER);
 
         // when
-        MvcResult result = mockMvc.perform(get(GET_URI)
+        final var result = mockMvc.perform(get(GET_URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -216,7 +204,7 @@ class ExemptionsControllerTest {
                 .andReturn();
 
         // then
-        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
+        assertEquals(data, mapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
     }
 
     @Test
@@ -226,7 +214,7 @@ class ExemptionsControllerTest {
         when(exemptionsService.getCompanyExemptions(any())).thenThrow(NotFoundException.class);
 
         // when
-        ResultActions result = mockMvc.perform(get(GET_URI)
+        final var result = mockMvc.perform(get(GET_URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -244,7 +232,7 @@ class ExemptionsControllerTest {
         when(exemptionsService.getCompanyExemptions(any())).thenThrow(ServiceUnavailableException.class);
 
         // when
-        ResultActions result = mockMvc.perform(get(GET_URI)
+        final var result = mockMvc.perform(get(GET_URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -261,7 +249,7 @@ class ExemptionsControllerTest {
         // given
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -281,7 +269,7 @@ class ExemptionsControllerTest {
                 .deleteCompanyExemptions(anyString(), anyString());
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -301,7 +289,7 @@ class ExemptionsControllerTest {
                 .deleteCompanyExemptions(anyString(), anyString());
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                 .contentType(APPLICATION_JSON)
                 .header("x-request-id", "5342342")
                 .header("ERIC-Identity", "Test-Identity")
@@ -321,7 +309,7 @@ class ExemptionsControllerTest {
                 .deleteCompanyExemptions(anyString(), anyString());
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -341,7 +329,7 @@ class ExemptionsControllerTest {
                 .deleteCompanyExemptions(anyString(), anyString());
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -361,7 +349,7 @@ class ExemptionsControllerTest {
                 .deleteCompanyExemptions(anyString(), anyString());
 
         // when
-        ResultActions result = mockMvc.perform(delete(URI)
+        final var result = mockMvc.perform(delete(URI)
                         .contentType(APPLICATION_JSON)
                         .header("x-request-id", "5342342")
                         .header("ERIC-Identity", "Test-Identity")
@@ -391,11 +379,11 @@ class ExemptionsControllerTest {
     @DisplayName("Successful get company exemptions request - CORS")
     void getCompanyExemptionsCORS() throws Exception {
         // given
-        CompanyExemptions data = getExemptionsData();
+        final var data = getExemptionsData();
         doReturn(data).when(exemptionsService).getCompanyExemptions(COMPANY_NUMBER);
 
         // when
-        MvcResult result = mockMvc.perform(get(GET_URI)
+        final var result = mockMvc.perform(get(GET_URI)
                         .contentType(APPLICATION_JSON)
                         .header("Origin", "")
                         .header("ERIC-Allowed-Origin", "some-origin")
@@ -408,7 +396,7 @@ class ExemptionsControllerTest {
                 .andReturn();
 
         // then
-        assertEquals(data, objectMapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
+        assertEquals(data, mapper.readValue(result.getResponse().getContentAsString(), CompanyExemptions.class));
     }
 
     @Test
@@ -454,11 +442,11 @@ class ExemptionsControllerTest {
     }
 
     private CompanyExemptions getExemptionsData() {
-        CompanyExemptions exemptionsData = new CompanyExemptions();
+        final var exemptionsData = new CompanyExemptions();
         exemptionsData.setKind(KindEnum.EXEMPTIONS);
-        Exemptions exemptions = new Exemptions();
-        ExemptionItem exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
-        PscExemptAsTradingOnRegulatedMarketItem regulatedMarketItem =
+        final var exemptions = new Exemptions();
+        final var exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
+        final var regulatedMarketItem =
                 new PscExemptAsTradingOnRegulatedMarketItem(Collections.singletonList(exemptionItem),
                         ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET);
         exemptions.setPscExemptAsTradingOnRegulatedMarket(regulatedMarketItem);

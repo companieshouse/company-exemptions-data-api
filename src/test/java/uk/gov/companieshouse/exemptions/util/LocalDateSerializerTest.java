@@ -3,7 +3,6 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JsonGenerator;
 
 @ExtendWith(MockitoExtension.class)
 class LocalDateSerializerTest {
@@ -25,7 +25,7 @@ class LocalDateSerializerTest {
 
     @Test
     void dateShouldSerialize() throws Exception {
-        LocalDate date = LocalDate.of(2020, 1, 1);
+        final var date = LocalDate.of(2020, 1, 1);
 
         serializer.serialize(date, generator, null);
 
