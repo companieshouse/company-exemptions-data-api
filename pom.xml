@@ -31,11 +31,9 @@
 		<skip.unit.tests>false</skip.unit.tests>
 
 		<!-- internal -->
-		<structured-logging.version>3.0.57</structured-logging.version>
 		<private-api-sdk-java.version>6.0.23</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>3.0.23</api-sdk-manager-java-library.version>
 		<api-security-java.version>2.0.27</api-security-java.version>
-		<api-helper-java-library.version>3.0.4</api-helper-java-library.version>
 
         <!-- Sonar -->
         <sonar.projectName>company-exemptions-data-api</sonar.projectName>
@@ -112,6 +110,11 @@
 	</dependencyManagement>
 
 	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.22</version>
+		</dependency>
 		<!--		Transitive deps start here-->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -179,6 +182,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-code</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -193,8 +206,17 @@
 					<groupId>org.junit.jupiter</groupId>
 					<artifactId>junit-jupiter-engine</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-code</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -208,7 +230,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-<!--			<version>${spring.boot.version}</version>-->
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -217,13 +238,7 @@
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>structured-logging</artifactId>
-			<version>${structured-logging.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.datatype</groupId>
-					<artifactId>jackson-datatype-jsr310</artifactId>
-				</exclusion>
-			</exclusions>
+<!--			<version>${structured-logging.version}</version>-->
 		</dependency>
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
@@ -256,7 +271,7 @@
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-helper-java</artifactId>
-			<version>${api-helper-java-library.version}</version>
+<!--			<version>${api-helper-java-library.version}</version>-->
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -331,6 +346,12 @@
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-params</artifactId>
 			<version>${junit-override.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj-core.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
