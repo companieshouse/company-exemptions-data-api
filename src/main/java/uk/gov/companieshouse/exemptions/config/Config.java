@@ -28,7 +28,7 @@ public class Config {
             @Value("${chs.kafka.api.key}") String apiKey,
             @Value("${chs.kafka.api.endpoint}") String apiUrl) {
         return () -> {
-            InternalApiClient internalApiClient = new InternalApiClient(new ApiKeyHttpClient(apiKey));
+            final var internalApiClient = new InternalApiClient(new ApiKeyHttpClient(apiKey));
             internalApiClient.setBasePath(apiUrl);
             return internalApiClient;
         };
@@ -40,7 +40,6 @@ public class Config {
      * @return MongoCustomConversions.
      */
     @Bean
-
     public MongoCustomConversions mongoCustomConversions() {
         final var mapper = mongoDbJsonMapper();
         return new MongoCustomConversions(
