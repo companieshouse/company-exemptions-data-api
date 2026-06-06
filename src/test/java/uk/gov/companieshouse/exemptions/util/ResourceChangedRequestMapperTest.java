@@ -94,13 +94,17 @@ class ResourceChangedRequestMapperTest {
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenThrow(JacksonException.class);
 
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
+
         // when
 
         // then
         assertThrows(
                 SerDesException.class,
-                () -> mapper.mapDeletedEvent(
-                        new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true)));
+                () -> mapper.mapDeletedEvent(request));
     }
 
     @Test
@@ -110,13 +114,17 @@ class ResourceChangedRequestMapperTest {
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
         when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JacksonException.class);
 
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
+
         // when
 
         // then
         assertThrows(
                 SerDesException.class,
-                () -> mapper.mapDeletedEvent(
-                        new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true)));
+                () -> mapper.mapDeletedEvent(request));
     }
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {

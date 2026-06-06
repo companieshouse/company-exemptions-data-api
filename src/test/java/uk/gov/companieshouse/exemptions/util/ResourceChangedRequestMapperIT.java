@@ -14,7 +14,6 @@ import uk.gov.companieshouse.exemptions.model.ResourceChangedRequest;
 @SpringBootTest
 class ResourceChangedRequestMapperIT {
 
-    private static final String CONTEXT_ID = "CONTEXT_ID";
     private static final String COMPANY_NUMBER = "12345678";
 
     @Autowired

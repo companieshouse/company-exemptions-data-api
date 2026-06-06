@@ -3,11 +3,13 @@ package uk.gov.companieshouse.exemptions.util;
 import com.mongodb.BasicDBObject;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NullMarked;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.exemptions.exception.ExemptionWriteException;
 
 @WritingConverter
+@NullMarked
 public class ExemptionsWriteConverter implements Converter<CompanyExemptions, BasicDBObject> {
 
     private final JsonMapper mapper;
@@ -22,11 +24,11 @@ public class ExemptionsWriteConverter implements Converter<CompanyExemptions, Ba
      * @return charge BSON object.
      */
     @Override
-    public BasicDBObject convert(final @NonNull CompanyExemptions source) {
+    public BasicDBObject convert(final CompanyExemptions source) {
         try {
             return BasicDBObject.parse(mapper.writeValueAsString(source));
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new ExemptionWriteException(ex);
         }
     }
 }
