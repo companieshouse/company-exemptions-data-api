@@ -73,7 +73,7 @@ class ResourceChangedRequestMapperTest {
 
     @ParameterizedTest
     @MethodSource("resourceChangedScenarios")
-    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) throws Exception {
+    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
@@ -89,7 +89,7 @@ class ResourceChangedRequestMapperTest {
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringSerialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringSerialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenThrow(JacksonException.class);
@@ -104,7 +104,7 @@ class ResourceChangedRequestMapperTest {
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringDeserialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringDeserialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");

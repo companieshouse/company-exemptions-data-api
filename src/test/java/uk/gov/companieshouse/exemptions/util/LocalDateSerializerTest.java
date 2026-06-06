@@ -24,7 +24,7 @@ class LocalDateSerializerTest {
     private ArgumentCaptor<String> dateString;
 
     @Test
-    void dateShouldSerialize() throws Exception {
+    void dateShouldSerialize() {
         final var date = LocalDate.of(2020, 1, 1);
 
         serializer.serialize(date, generator, null);
@@ -34,7 +34,7 @@ class LocalDateSerializerTest {
     }
 
     @Test
-    void serializeWhenDataIsNull() throws Exception {
+    void serializeWhenDataIsNull() {
         serializer.serialize(null, generator, null);
 
         verify(generator).writeNull();
