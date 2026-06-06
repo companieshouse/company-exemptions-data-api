@@ -35,15 +35,14 @@
 		<api-sdk-manager-java-library.version>3.0.23</api-sdk-manager-java-library.version>
 		<api-security-java.version>2.0.27</api-security-java.version>
 
-        <!-- Sonar -->
-        <sonar.projectName>company-exemptions-data-api</sonar.projectName>
-        <!--suppress UnresolvedMavenProperty -->
-        <sonar.host.url>${CODE_ANALYSIS_HOST_URL}</sonar.host.url>
-        <!--suppress UnresolvedMavenProperty -->
-        <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
-        <sonar.login/>
-        <sonar.password/>
-        <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+		<!-- sonar config -->
+		<sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
+		<sonar.java.binaries>${project.basedir}/target,${project.basedir}/target/*</sonar.java.binaries>
+		<sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
+		<sonar.login></sonar.login>
+		<sonar.password></sonar.password>
+		<sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+		<sonar.projectName>company-exemptions-data-api</sonar.projectName>
 
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
 		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
@@ -390,33 +389,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>pre-integration-test</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-						<configuration>
-							<!-- Sets the path to the file which contains the execution model. -->
-							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
-							<propertyName>failsafeArgLine</propertyName>
-						</configuration>
-					</execution>
-					<execution>
-						<id>post-integration-test</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-						<configuration>
-							<!-- Sets the path to the file which contains the execution data. -->
-							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
-							<!-- Sets the output directory for the code coverage report. -->
-							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.sonarsource.scanner.maven</groupId>
