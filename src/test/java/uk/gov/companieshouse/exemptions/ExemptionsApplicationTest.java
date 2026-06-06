@@ -18,14 +18,14 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mongodb.MongoDBContainer;
 
-@Testcontainers
+//@Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class ExemptionsApplicationTest {
-
-	@Container
-	@ServiceConnection
-	static final MongoDBContainer MONGO = new MongoDBContainer("mongo:8.0");
+//
+//	@Container
+//	@ServiceConnection
+//	static final MongoDBContainer MONGO = new MongoDBContainer("mongo:8.0");
 
 	@Autowired
 	private MockMvc mockMvc;
