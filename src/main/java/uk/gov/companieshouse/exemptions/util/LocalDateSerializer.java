@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 public class LocalDateSerializer extends StdSerializer<LocalDate> {
 
-    private static final DateTimeFormatter dateTimeFormatter =
+    private static final DateTimeFormatter DATE_TIME_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private static final String ISO_DATE_FORMAT = "ISODate(\"%s\")";
 
@@ -35,7 +35,7 @@ public class LocalDateSerializer extends StdSerializer<LocalDate> {
         if (localDate == null) {
             jsonGenerator.writeNull();
         } else {
-            final var format = localDate.atStartOfDay().format(dateTimeFormatter);
+            final var format = localDate.atStartOfDay().format(DATE_TIME_FORMATTER);
             jsonGenerator.writeRawValue(String.format(ISO_DATE_FORMAT,format));
         }
     }
