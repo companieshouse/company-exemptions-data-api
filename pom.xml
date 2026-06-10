@@ -47,6 +47,7 @@
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
 		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
 
+		<jackson-bom.version>3.2.0</jackson-bom.version>
 		<ch-bom.version>0.1.5</ch-bom.version>
 	</properties>
 	<dependencyManagement>
@@ -65,6 +66,14 @@
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-test-bom</artifactId>
 				<version>${ch-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>tools.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<version>${jackson-bom.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
