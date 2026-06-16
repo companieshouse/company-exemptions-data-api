@@ -16,7 +16,7 @@
 		<java.version>21</java.version>
 
 		<maven-build-helper-plugin.version>3.6.1</maven-build-helper-plugin.version>
-		<spring.boot.version>4.0.7</spring.boot.version>
+		<spring.boot.version>4.1.0</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 		<opentelemetry.version>2.28.1</opentelemetry.version>
@@ -47,8 +47,7 @@
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
 		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
 
-		<jackson-bom.version>3.2.0</jackson-bom.version>
-		<ch-bom.version>0.1.5</ch-bom.version>
+		<ch-bom.version>0.1.8</ch-bom.version>
 		<jackson-annotations.version>2.22</jackson-annotations.version>
 	</properties>
 	<dependencyManagement>
@@ -115,11 +114,6 @@
 				<groupId>org.apache.tomcat.embed</groupId>
 				<artifactId>tomcat-embed-websocket</artifactId>
 				<version>${tomcat-core-override.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson-annotations.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
