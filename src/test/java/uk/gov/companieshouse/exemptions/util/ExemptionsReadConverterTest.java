@@ -4,24 +4,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 
 class ExemptionsReadConverterTest {
 
-    private final ExemptionsReadConverter converter = new ExemptionsReadConverter(new ObjectMapper());
+    private final ExemptionsReadConverter converter = new ExemptionsReadConverter(new JsonMapper());
 
     @Test
     void convertDocumentToCompanyExemptions() {
         // given
-        Document source = Document.parse("{\"kind\" : \"exemptions\"}");
+        final var source = Document.parse("{\"kind\" : \"exemptions\"}");
 
         // when
-        CompanyExemptions actual = converter.convert(source);
+        final var actual = converter.convert(source);
 
         // then
         assertNotNull(actual);
@@ -33,9 +31,9 @@ class ExemptionsReadConverterTest {
         // given
 
         // when
-        Executable actual = () -> converter.convert(null);
 
         // then
-        assertThrows(RuntimeException.class, actual);
+        assertThrows(RuntimeException.class,
+                () -> converter.convert(null));
     }
 }

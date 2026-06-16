@@ -1,19 +1,21 @@
 package uk.gov.companieshouse.exemptions.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.Document;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
-import org.springframework.lang.NonNull;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.exemptions.exception.ExemptionReadException;
 
 @ReadingConverter
+@NullMarked
 public class ExemptionsReadConverter implements Converter<Document, CompanyExemptions> {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper mapper;
 
-    public ExemptionsReadConverter(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public ExemptionsReadConverter(JsonMapper mapper) {
+        this.mapper = mapper;
     }
 
     /**
@@ -22,11 +24,11 @@ public class ExemptionsReadConverter implements Converter<Document, CompanyExemp
      * @return charge BSON object.
      */
     @Override
-    public CompanyExemptions convert(@NonNull Document source) {
+    public CompanyExemptions convert(final Document source) {
         try {
-            return objectMapper.readValue(source.toJson(), CompanyExemptions.class);
+            return mapper.readValue(source.toJson(), CompanyExemptions.class);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new ExemptionReadException(ex);
         }
     }
 }
