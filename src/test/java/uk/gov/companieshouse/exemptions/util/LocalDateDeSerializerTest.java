@@ -3,27 +3,24 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 
 class LocalDateDeSerializerTest {
 
     private final LocalDateDeSerializer deserializer = new LocalDateDeSerializer();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonMapper mapper = new JsonMapper();
 
     @Test
-    void dateShouldDeserialize() throws IOException{
+    void dateShouldDeserialize() {
         // given
-        String jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
+        final var jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
 
         // when
-        LocalDate returnedDate = deserialize(jsonTestString);
+        final var returnedDate = deserialize(jsonTestString);
 
         // then
         assertEquals(LocalDate.of(2023, 1, 9), returnedDate);
@@ -31,47 +28,47 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void longStringReturnsLong() throws IOException {
+    void longStringReturnsLong() {
         // given
-        String jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
+        final var jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 
         // when
-        LocalDate returnedDate = deserialize(jsonTestString);
+        final var returnedDate = deserialize(jsonTestString);
 
         // then
         assertEquals(LocalDate.of(1924, 8, 23), returnedDate);
     }
 
     @Test
-    void nullStringThrowsNullPointerException() {
+    void nullStringThrowsIllegalArgumentException() {
         // given
 
-        // when
-        Executable actual = () -> deserialize(null);
+        // when/ then
+        assertThrows(IllegalArgumentException.class, () -> deserialize(null));
 
-        // then
-        assertThrows(NullPointerException.class, actual);
     }
 
     @Test
     void invalidlStringThrowsBadRequestException() {
         // given
-        String jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
+        final var jsonTestString = "{\"date\":{\"$date\": \"NotADate\"}}}";
 
-        // when
-        Executable actual = () -> deserialize(jsonTestString);
-
-        // then
-        assertThrows(BadRequestException.class, actual);
+        // when/then
+        assertThrows(BadRequestException.class,
+                () -> deserialize(jsonTestString));
     }
 
-    private LocalDate deserialize(String jsonString) throws IOException {
-        JsonParser parser = mapper.getFactory().createParser(jsonString);
-        DeserializationContext deserializationContext = mapper.getDeserializationContext();
+    private LocalDate deserialize(String jsonString) {
+        final var parser = mapper.createParser(jsonString);
+        DeserializationContext deserializationContext = null;
 
-        parser.nextToken();
-        parser.nextToken();
-        parser.nextToken();
+        try {
+            parser.nextToken();
+            parser.nextToken();
+            parser.nextToken();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         return deserializer.deserialize(parser, deserializationContext);
     }

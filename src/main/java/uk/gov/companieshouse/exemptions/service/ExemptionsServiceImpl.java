@@ -39,6 +39,9 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     private static final String COMPANY_EXEMPTIONS_DELETED_SUCCESSFULLY = "Company exemptions deleted in mongoDB successfully";
     private static final String DELETE_FOR_NON_EXISTENT_EXEMPTIONS_DOCUMENT = "Delete for non-existent exemptions document";
 
+    private static final String ERROR_CALLING_CHS_KAFKA_API_MSG = "Error calling chs-kafka-api";
+    private static final String ERROR_CONNECTING_TO_MONGO_DB_MSG = "Error connecting to MongoDB";
+
     private final ExemptionsRepository repository;
     private final ExemptionsMapper mapper;
     private final ExemptionsApiService exemptionsApiService;
