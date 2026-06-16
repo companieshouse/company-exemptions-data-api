@@ -6,6 +6,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.lang.NonNull;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsWriteException;
 
 @WritingConverter
 public class ExemptionsWriteConverter implements Converter<CompanyExemptions, BasicDBObject> {
@@ -26,7 +27,7 @@ public class ExemptionsWriteConverter implements Converter<CompanyExemptions, Ba
         try {
             return BasicDBObject.parse(objectMapper.writeValueAsString(source));
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new ExemptionsWriteException(ex);
         }
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.lang.NonNull;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsReadException;
 
 @ReadingConverter
 public class ExemptionsReadConverter implements Converter<Document, CompanyExemptions> {
@@ -26,7 +27,7 @@ public class ExemptionsReadConverter implements Converter<Document, CompanyExemp
         try {
             return objectMapper.readValue(source.toJson(), CompanyExemptions.class);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new ExemptionsReadException(ex);
         }
     }
 }

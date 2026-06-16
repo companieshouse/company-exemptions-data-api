@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 import uk.gov.companieshouse.exemptions.exception.ConflictException;
 import uk.gov.companieshouse.exemptions.exception.NotFoundException;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsReadException;
+import uk.gov.companieshouse.exemptions.exception.ExemptionsWriteException;
 import uk.gov.companieshouse.exemptions.exception.SerDesException;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
 import uk.gov.companieshouse.exemptions.logging.DataMapHolder;
@@ -54,8 +56,8 @@ public class ControllerExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(value = {Exception.class, SerDesException.class})
-    public ResponseEntity<Void> handleInternalServerError(Exception ex) {
+    @ExceptionHandler(value = {SerDesException.class, ExemptionsReadException.class,
+            ExemptionsWriteException.class, Exception.class})    public ResponseEntity<Void> handleInternalServerError(Exception ex) {
         LOGGER.error(ex.getMessage(), ex, DataMapHolder.getLogMap());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

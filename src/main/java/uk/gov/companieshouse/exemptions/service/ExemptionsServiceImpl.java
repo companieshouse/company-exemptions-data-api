@@ -29,6 +29,15 @@ public class ExemptionsServiceImpl implements ExemptionsService {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSSSSS").withZone(ZoneId.of("Z"));
     private static final Logger LOGGER = LoggerFactory.getLogger(APPLICATION_NAME_SPACE);
+    private static final String COMPANY_EXEMPTION_IS_UPDATED_IN_MONGO = "Company exemption is updated in mongo";
+    private static final String NOT_PERSISTED_AS_IT_IS_NOT_THE_LATEST_RECORD = "Record not persisted as it is not the latest record";
+    private static final String ERROR_CALLING_CHS_KAFKA_API = "Error calling chs-kafka-api";
+    private static final String ERROR_CONNECTING_TO_MONGO_DB = "Error connecting to MongoDB";
+    private static final String EXEMPTIONS_DOES_NOT_EXIST_FOR_COMPANY = "Exemptions does not exist for company: %s ";
+    private static final String DELTA_AT_MISSING_FROM_DELETE_REQUEST = "deltaAt missing from delete request";
+    private static final String STALE_DELTA_RECEIVED = "Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]";
+    private static final String COMPANY_EXEMPTIONS_DELETED_SUCCESSFULLY = "Company exemptions deleted in mongoDB successfully";
+    private static final String DELETE_FOR_NON_EXISTENT_EXEMPTIONS_DOCUMENT = "Delete for non-existent exemptions document";
 
     private final ExemptionsRepository repository;
     private final ExemptionsMapper mapper;
@@ -60,18 +69,18 @@ public class ExemptionsServiceImpl implements ExemptionsService {
                                 () -> document.setCreated(new Created().setAt(document.getUpdated().at())));
 
                 repository.save(document);
-                LOGGER.info("Company exemption is updated in mongo", DataMapHolder.getLogMap());
+                LOGGER.info(COMPANY_EXEMPTION_IS_UPDATED_IN_MONGO, DataMapHolder.getLogMap());
 
                 exemptionsApiService.invokeChsKafkaApi(new ResourceChangedRequest(companyNumber, null, false));
             } else {
-                LOGGER.error("Record not persisted as it is not the latest record", DataMapHolder.getLogMap());
-                throw new ConflictException("Record not persisted as it is not the latest record");
+                LOGGER.error(NOT_PERSISTED_AS_IT_IS_NOT_THE_LATEST_RECORD, DataMapHolder.getLogMap());
+                throw new ConflictException(NOT_PERSISTED_AS_IT_IS_NOT_THE_LATEST_RECORD);
             }
         } catch (IllegalArgumentException ex) {
-            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CALLING_CHS_KAFKA_API, DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -81,9 +90,9 @@ public class ExemptionsServiceImpl implements ExemptionsService {
         try {
             return repository.findById(companyNumber).map(CompanyExemptionsDocument::getData)
                     .orElseThrow(() -> new NotFoundException(String.format(
-                            "Exemptions does not exist for company: %s ", companyNumber)));
+                            EXEMPTIONS_DOES_NOT_EXIST_FOR_COMPANY, companyNumber)));
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
@@ -91,7 +100,7 @@ public class ExemptionsServiceImpl implements ExemptionsService {
     @Override
     public void deleteCompanyExemptions(String companyNumber, String requestDeltaAt) {
         if (StringUtils.isBlank(requestDeltaAt)) {
-            throw new BadRequestException("deltaAt missing from delete request");
+            throw new BadRequestException(DELTA_AT_MISSING_FROM_DELETE_REQUEST);
         }
         try {
             Optional<CompanyExemptionsDocument> document = repository.findById(companyNumber);
@@ -99,24 +108,24 @@ public class ExemptionsServiceImpl implements ExemptionsService {
             document.ifPresentOrElse(doc -> {
                 String existingDeltaAt = doc.getDeltaAt();
                 if (isDeltaStale(requestDeltaAt, existingDeltaAt)) {
-                    final String msg = String.format("Stale delta received; request delta_at: [%s] is not after existing delta_at: [%s]",
+                    final String msg = String.format(STALE_DELTA_RECEIVED,
                             requestDeltaAt, existingDeltaAt);
                     LOGGER.error(msg, DataMapHolder.getLogMap());
                     throw new ConflictException(msg);
                 }
 
                 repository.deleteById(companyNumber);
-                LOGGER.info("Company exemptions deleted in mongoDB successfully", DataMapHolder.getLogMap());
+                LOGGER.info(COMPANY_EXEMPTIONS_DELETED_SUCCESSFULLY, DataMapHolder.getLogMap());
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, doc, true));
             }, () -> {
-                LOGGER.info("Delete for non-existent exemptions document", DataMapHolder.getLogMap());
+                LOGGER.info(DELETE_FOR_NON_EXISTENT_EXEMPTIONS_DOCUMENT, DataMapHolder.getLogMap());
                 exemptionsApiService.invokeChsKafkaApiDelete(new ResourceChangedRequest(companyNumber, new CompanyExemptionsDocument(), true));
             });
         } catch (IllegalArgumentException ex) {
-            LOGGER.info("Error calling chs-kafka-api", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CALLING_CHS_KAFKA_API, DataMapHolder.getLogMap());
             throw new BadRequestException(ex.getMessage());
         } catch (DataAccessException ex) {
-            LOGGER.info("Error connecting to MongoDB", DataMapHolder.getLogMap());
+            LOGGER.info(ERROR_CONNECTING_TO_MONGO_DB, DataMapHolder.getLogMap());
             throw new ServiceUnavailableException(ex.getMessage());
         }
     }
