@@ -6,7 +6,7 @@ import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;
 import org.junit.platform.suite.api.SelectClasspathResource;
 import org.junit.platform.suite.api.Suite;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 
 @Suite
@@ -15,7 +15,7 @@ import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "uk.gov.companieshouse.exemptions")
 public class Runner  {
 
-    @MockBean
+    @MockitoBean
     public ExemptionsApiService exemptionsApiService;
 
 }
