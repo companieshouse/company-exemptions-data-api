@@ -8,22 +8,23 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
@@ -53,7 +54,7 @@ class ResourceChangedRequestMapperTest {
     @Test
     void shouldMapChangedEvent() {
         // given
-        ResourceChangedTestArgument argument = ResourceChangedTestArgument.builder()
+        final var argument = ResourceChangedTestArgument.builder()
                 .withRequest(new ResourceChangedRequest("12345678", null, false))
                 .withContextId(EXPECTED_CONTEXT_ID)
                 .withResourceUri("company/12345678/exemptions")
@@ -64,7 +65,7 @@ class ResourceChangedRequestMapperTest {
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
 
         // when
-        ChangedResource actual = mapper.mapChangedEvent(argument.request());
+        final var actual = mapper.mapChangedEvent(argument.request());
 
         // then
         assertEquals(argument.changedResource(), actual);
@@ -72,14 +73,14 @@ class ResourceChangedRequestMapperTest {
 
     @ParameterizedTest
     @MethodSource("resourceChangedScenarios")
-    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) throws Exception {
+    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
         when(objectMapper.readValue(anyString(), eq(Object.class))).thenReturn(argument.changedResource().getDeletedData());
 
         // when
-        ChangedResource actual = mapper.mapDeletedEvent(argument.request());
+        final var actual = mapper.mapDeletedEvent(argument.request());
 
         // then
         assertEquals(argument.changedResource(), actual);
@@ -88,32 +89,42 @@ class ResourceChangedRequestMapperTest {
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJsonProcessingExceptionCaughtDuringSerialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringSerialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
-        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+        when(objectMapper.writeValueAsString(any())).thenThrow(JacksonException.class);
+
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
 
         // when
-        Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
 
         // then
-        assertThrows(SerDesException.class, ex);
+        assertThrows(
+                SerDesException.class,
+                () -> mapper.mapDeletedEvent(request));
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJsonProcessingExceptionCaughtDuringDeserialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringDeserialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
-        when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
+        when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JacksonException.class);
+
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
 
         // when
-        Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
 
         // then
-        assertThrows(SerDesException.class, ex);
+        assertThrows(
+                SerDesException.class,
+                () -> mapper.mapDeletedEvent(request));
     }
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
@@ -145,7 +156,7 @@ class ResourceChangedRequestMapperTest {
         }
 
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return this.request.toString();
         }
     }
@@ -196,11 +207,11 @@ class ResourceChangedRequestMapperTest {
         }
 
         public ResourceChangedTestArgument build() {
-            ChangedResource changedResource = new ChangedResource();
+            final var changedResource = new ChangedResource();
             changedResource.setResourceUri(this.resourceUri);
             changedResource.setResourceKind(this.resourceKind);
             changedResource.setContextId(this.contextId);
-            ChangedResourceEvent event = new ChangedResourceEvent();
+            final var event = new ChangedResourceEvent();
             event.setType(this.eventType);
             event.setPublishedAt(this.eventPublishedAt);
             changedResource.setEvent(event);
@@ -210,7 +221,7 @@ class ResourceChangedRequestMapperTest {
     }
 
     private static CompanyExemptionsDocument getCompanyExemptionsDocument() {
-        CompanyExemptionsDocument document = new CompanyExemptionsDocument();
+        final var document = new CompanyExemptionsDocument();
         document.setId("00006400");
         document.setDeltaAt("20221012091025774312");
         document.setData(getExemptionsData());
@@ -218,10 +229,10 @@ class ResourceChangedRequestMapperTest {
     }
 
     private static CompanyExemptions getExemptionsData() {
-        CompanyExemptions exemptionsData = new CompanyExemptions();
-        Exemptions exemptions = new Exemptions();
-        ExemptionItem exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
-        PscExemptAsTradingOnRegulatedMarketItem regulatedMarketItem =
+        final var exemptionsData = new CompanyExemptions();
+        final var exemptions = new Exemptions();
+        final var exemptionItem = new ExemptionItem(LocalDate.of(2022, 1, 1));
+        final var regulatedMarketItem =
                 new PscExemptAsTradingOnRegulatedMarketItem(Collections.singletonList(exemptionItem),
                         ExemptionTypeEnum.PSC_EXEMPT_AS_TRADING_ON_REGULATED_MARKET);
         exemptions.setPscExemptAsTradingOnRegulatedMarket(regulatedMarketItem);

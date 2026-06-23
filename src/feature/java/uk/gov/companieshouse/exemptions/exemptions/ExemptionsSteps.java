@@ -8,24 +8,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static uk.gov.companieshouse.exemptions.MongoConfig.mongoDBContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CucumberContext;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
@@ -43,7 +41,7 @@ public class ExemptionsSteps {
     private ExemptionsApiService exemptionsApiService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper mapper;
 
     @Autowired
     private ExemptionsRepository exemptionsRepository;
@@ -71,10 +69,10 @@ public class ExemptionsSteps {
 
     @And("exemptions exists for company number {string} with delta_at {string}")
     public void saveCompanyExemptionsResourceToTheDatabase(String companyNumber, String deltaAt) throws IOException {
-        File source = new ClassPathResource("/fragments/responses/retrieved_exemptions_resource.json").getFile();
-        CompanyExemptions exemptionsData = objectMapper.readValue(source, CompanyExemptions.class);
+        final var source = new ClassPathResource("/fragments/responses/retrieved_exemptions_resource.json").getFile();
+        final var exemptionsData = mapper.readValue(source, CompanyExemptions.class);
 
-        CompanyExemptionsDocument companyExemptions = new CompanyExemptionsDocument();
+        final var companyExemptions = new CompanyExemptionsDocument();
         companyExemptions.setData(exemptionsData).setId(companyNumber);
         companyExemptions.setDeltaAt(deltaAt);
 
@@ -91,14 +89,14 @@ public class ExemptionsSteps {
     public void invokeCompanyExemptionsGetRequest(String companyNumber) {
         this.contextId = "5234234234";
         CucumberContext.CONTEXT.set("contextId", this.contextId);
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.set("x-request-id", this.contextId);
         headers.set("ERIC-Identity", "TEST-IDENTITY");
         headers.set("ERIC-Identity-Type", "KEY");
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        final var  request = new HttpEntity<>(null, headers);
 
-        String uri = String.format("/company/%s/exemptions", companyNumber);
-        ResponseEntity<CompanyExemptions> response = restTemplate.exchange(uri, HttpMethod.GET, request,
+        final var uri = String.format("/company/%s/exemptions", companyNumber);
+        final ResponseEntity<CompanyExemptions> response = restTemplate.exchange(uri, HttpMethod.GET, request,
                 CompanyExemptions.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
         CucumberContext.CONTEXT.set("getResponseBody", response.getBody());
@@ -112,10 +110,10 @@ public class ExemptionsSteps {
 
     @And("the response body should match the data found within {string}")
     public void verifyCompanyExemptionsContent(String source) throws IOException {
-        File file = new ClassPathResource(String.format("/fragments/responses/%s.json", source)).getFile();
-        CompanyExemptions expected = objectMapper.readValue(file, CompanyExemptions.class);
+        final var file = new ClassPathResource(String.format("/fragments/responses/%s.json", source)).getFile();
+        final var expected = mapper.readValue(file, CompanyExemptions.class);
 
-        CompanyExemptions actual = CucumberContext.CONTEXT.get("getResponseBody");
+        final CompanyExemptions actual = CucumberContext.CONTEXT.get("getResponseBody");
 
         assertThat(expected.getExemptions()).isEqualTo(actual.getExemptions());
         assertThat(expected.getLinks()).isEqualTo(actual.getLinks());
@@ -125,7 +123,7 @@ public class ExemptionsSteps {
 
     @Then("a PUT request matching payload within {string} is sent for {string}")
     public void invokeCompanyExemptionsPutRequest(String source, String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -136,16 +134,16 @@ public class ExemptionsSteps {
         headers.set("ERIC-Identity-Type", "KEY");
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
 
-        String payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
-        HttpEntity<String> request = new HttpEntity<>(payload, headers);
-        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+        final var payload = FileReaderUtil.readFile(String.format("src/feature/resources/fragments/requests/%s.json", source));
+        final var request = new HttpEntity<>(payload, headers);
+        final var uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        final var response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the CHS Kafka API service is invoked for upsert with {string}")
     public void verifyChsKafkaApiRuns(String companyNumber) {
-        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(companyNumber, null, false);
+        final var resourceChangedRequest = new ResourceChangedRequest(companyNumber, null, false);
         verify(exemptionsApiService).invokeChsKafkaApi(resourceChangedRequest);
     }
 
@@ -171,7 +169,7 @@ public class ExemptionsSteps {
 
     @When("a PUT request is sent without ERIC headers for {string}")
     public void PutRequestSentWithoutERICHeaders(String companyNumber){
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -179,23 +177,23 @@ public class ExemptionsSteps {
         CucumberContext.CONTEXT.set("contextId", this.contextId);
         headers.set("x-request-id", this.contextId);
 
-        String payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
-        HttpEntity<String> request = new HttpEntity<>(payload, headers);
-        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        final var payload = FileReaderUtil.readFile("src/feature/resources/fragments/requests/exemptions_api_request.json");
+        final var request = new HttpEntity<>(payload, headers);
+        final var uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
+        final var response = restTemplate.exchange(uri, HttpMethod.PUT, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the exemptions {string} for {string} exist in the database")
     public void exemptionsForCompanyNumberHaveBeenSavedInDatabase(String source, String companyNumber) throws IOException {
-        File file = new ClassPathResource(String.format("/fragments/responses/%s.json", source)).getFile();
+        final var file = new ClassPathResource(String.format("/fragments/responses/%s.json", source)).getFile();
 
-        Optional<CompanyExemptionsDocument> document = exemptionsRepository.findById(companyNumber);
+        final var document = exemptionsRepository.findById(companyNumber);
         assertTrue(document.isPresent());
 
-        CompanyExemptions actual = document.get().getData();
-        CompanyExemptions expected = objectMapper.readValue(file, CompanyExemptions.class);
+        final var actual = document.get().getData();
+        final var expected = mapper.readValue(file, CompanyExemptions.class);
 
         assertThat(expected.getExemptions()).isEqualTo(actual.getExemptions());
         assertThat(expected.getLinks()).isEqualTo(actual.getLinks());
@@ -211,7 +209,7 @@ public class ExemptionsSteps {
 
     @When("a delete request is sent after to the delete endpoint for {string}")
     public void sendRequestToDeleteEndpointWhenDocDoesNotExist(String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -225,18 +223,18 @@ public class ExemptionsSteps {
 
         CucumberContext.CONTEXT.set("exemptionsDocument", new CompanyExemptionsDocument());
 
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
-        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+        final var request = new HttpEntity<>(null, headers);
+        final var uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        final var response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
     @And("the CHS Kafka Api service is invoked for {string} for a delete")
     public void verifyCHSKafkaApiIsInvokedForDelete(String companyNumber) {
-        CompanyExemptionsDocument document = CucumberContext.CONTEXT.get("exemptionsDocument");
+        final CompanyExemptionsDocument document = CucumberContext.CONTEXT.get("exemptionsDocument");
 
-        ResourceChangedRequest resourceChangedRequest = new ResourceChangedRequest(companyNumber, document, true);
+        final var resourceChangedRequest = new ResourceChangedRequest(companyNumber, document, true);
         verify(exemptionsApiService).invokeChsKafkaApiDelete(resourceChangedRequest);
     }
 
@@ -252,7 +250,7 @@ public class ExemptionsSteps {
 
     @When("a DELETE request is sent without ERIC headers for {string}")
     public void deleteRequestSentWithoutEricHeaders(String companyNumber) {
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -260,10 +258,10 @@ public class ExemptionsSteps {
         CucumberContext.CONTEXT.set("contextId", this.contextId);
         headers.set("x-request-id", this.contextId);
 
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
+        final var request = new HttpEntity<>(null, headers);
         String uri = String.format("/company-exemptions/%s/internal", companyNumber);
 
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
+        final var response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class, companyNumber);
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());
     }
 
@@ -273,7 +271,7 @@ public class ExemptionsSteps {
     }
 
     private void invokeDeleteCall(String companyNumber, String deltaAt) {
-        HttpHeaders headers = new HttpHeaders();
+        final var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
@@ -285,9 +283,9 @@ public class ExemptionsSteps {
         headers.set("ERIC-Authorised-Key-Privileges", "internal-app");
         headers.set("X-DELTA-AT", deltaAt);
 
-        HttpEntity<String> request = new HttpEntity<>(null, headers);
-        String uri = String.format("/company-exemptions/%s/internal", companyNumber);
-        ResponseEntity<Void> response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class,
+        final var request = new HttpEntity<>(null, headers);
+        final var uri = String.format("/company-exemptions/%s/internal", companyNumber);
+        final var response = restTemplate.exchange(uri, HttpMethod.DELETE, request, Void.class,
                 companyNumber);
 
         CucumberContext.CONTEXT.set("statusCode", response.getStatusCode().value());

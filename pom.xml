@@ -16,7 +16,8 @@
 		<java.version>21</java.version>
 
 		<maven-build-helper-plugin.version>3.6.1</maven-build-helper-plugin.version>
-		<spring.boot.version>3.5.15</spring.boot.version>
+
+    <spring.boot.version>3.5.15</spring.boot.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
@@ -25,34 +26,59 @@
 		<maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
 		<maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
 		<jib-maven-plugin.version>3.4.6</jib-maven-plugin.version>
-		<cucumber.version>7.23.0</cucumber.version> <!-- Upgrading cucumber version causes issues on pipeline due to junit engine -->
+		<cucumber.version>7.23.0</cucumber.version>
 		<skip.integration.tests>false</skip.integration.tests>
 		<skip.unit.tests>false</skip.unit.tests>
 
 		<!-- internal -->
 		<private-api-sdk-java.version>4.0.404</private-api-sdk-java.version>
 
-        <!-- Sonar -->
-        <sonar.projectName>company-exemptions-data-api</sonar.projectName>
-        <!--suppress UnresolvedMavenProperty -->
-        <sonar.host.url>${CODE_ANALYSIS_HOST_URL}</sonar.host.url>
-        <!--suppress UnresolvedMavenProperty -->
-        <sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
-        <sonar.login/>
-        <sonar.password/>
-        <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+		<!-- sonar config -->
+		<sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
+		<sonar.java.binaries>${project.basedir}/target,${project.basedir}/target/*</sonar.java.binaries>
+		<sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
+		<sonar.login></sonar.login>
+		<sonar.password></sonar.password>
+		<sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
+		<sonar.projectName>company-exemptions-data-api</sonar.projectName>
 
 		<ch-boms.version>0.1.9</ch-boms.version>
+
 	</properties>
 	<dependencyManagement>
 		<dependencies>
+			<!-- Import the CH Dependency BOM to manage versions of common dependencies -->
+			<dependency>
+				<groupId>uk.gov.companieshouse</groupId>
+				<artifactId>ch-dependency-bom</artifactId>
+				<version>${ch-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<!-- Import the CH Test BOM to manage versions of common dependencies -->
+			<dependency>
+				<groupId>uk.gov.companieshouse</groupId>
+				<artifactId>ch-test-bom</artifactId>
+				<version>${ch-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
 			<dependency>
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-dependency-bom</artifactId>
 				<version>${ch-boms.version}</version>
 				<type>pom</type>
+				<exclusions>
+					<exclusion>
+						<groupId>com.fasterxml.jackson.core</groupId>
+						<artifactId>jackson-core</artifactId>
+					</exclusion>
+				</exclusions>
 				<scope>import</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>uk.gov.companieshouse</groupId>
 				<artifactId>ch-test-bom</artifactId>
@@ -68,6 +94,7 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>io.cucumber</groupId>
 				<artifactId>cucumber-bom</artifactId>
@@ -75,19 +102,60 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-core</artifactId>
+				<version>${tomcat-core-override.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-el</artifactId>
+				<version>${tomcat-core-override.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tomcat.embed</groupId>
+				<artifactId>tomcat-embed-websocket</artifactId>
+				<version>${tomcat-core-override.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<dependencies>
+
 		<!--		Transitive deps start here-->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<!--		Transitive deps end here-->
+
+		<!-- Source: https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-stdlib -->
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-stdlib</artifactId>
+			<version>${kotlin-stdlin-override.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>io.opentelemetry.instrumentation</groupId>
 			<artifactId>opentelemetry-spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jetbrains.kotlin</groupId>
+					<artifactId>kotlin-stdlib</artifactId>
+				</exclusion>
+				<!-- SB4, Jackson 3 -->
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -103,7 +171,39 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-el</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.tomcat.embed</groupId>
+					<artifactId>tomcat-embed-websocket</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-code</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aspectj</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -111,10 +211,19 @@
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
-					<groupId>org.junit.jupiter</groupId>
-					<artifactId>junit-jupiter-engine</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -136,8 +245,7 @@
 		</dependency>
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
-			<artifactId>private-api-sdk-java</artifactId>
-			<version>${private-api-sdk-java.version}</version>
+			<artifactId>structured-logging</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
@@ -148,16 +256,32 @@
 					<groupId>commons-collections</groupId>
 					<artifactId>commons-collections</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.datatype</groupId>
+					<artifactId>jackson-datatype-jsr310</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.dataformat</groupId>
+					<artifactId>jackson-dataformat-yaml</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>uk.gov.companieshouse</groupId>
 			<artifactId>api-helper-java</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>uk.gov.companieshouse</groupId>
-            <artifactId>api-security-java</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>uk.gov.companieshouse</groupId>
+      <artifactId>api-security-java</artifactId>
+    </dependency>
 		<dependency>
 			<groupId>io.cucumber</groupId>
 			<artifactId>cucumber-java</artifactId>
@@ -185,9 +309,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>mongodb</artifactId>
+			<artifactId>testcontainers-mongodb</artifactId>
 			<exclusions>
-				<!--excluded to remove vulnerability-->
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
 					<artifactId>commons-compress</artifactId>
@@ -197,7 +320,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -213,6 +336,11 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -236,11 +364,6 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${maven-surefire-plugin.version}</version>
 				<configuration>
-					<argLine>-Dfile.encoding=UTF-8</argLine>
-					<argLine>${surefireArgLine}</argLine>
-					<excludes>
-						<exclude>**/uk.gov.companieshouse.exemptions.Runner.java</exclude>
-					</excludes>
 					<skipTests>${skip.unit.tests}</skipTests>
 				</configuration>
 			</plugin>
@@ -248,33 +371,6 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco-maven-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>pre-integration-test</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-						<configuration>
-							<!-- Sets the path to the file which contains the execution model. -->
-							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
-							<propertyName>failsafeArgLine</propertyName>
-						</configuration>
-					</execution>
-					<execution>
-						<id>post-integration-test</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-						<configuration>
-							<!-- Sets the path to the file which contains the execution data. -->
-							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
-							<!-- Sets the output directory for the code coverage report. -->
-							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.sonarsource.scanner.maven</groupId>
@@ -307,13 +403,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<argLine>-Dfile.encoding=UTF-8</argLine>
-					<argLine>${failsafeArgLine}</argLine>
 					<classesDirectory>${project.build.outputDirectory}</classesDirectory>
 					<skipITs>${skip.integration.tests}</skipITs>
-					<includes>
-						<include>**/uk.gov.companieshouse.exemptions.Runner.java</include>
-					</includes>
 				</configuration>
 			</plugin>
 			<plugin>
