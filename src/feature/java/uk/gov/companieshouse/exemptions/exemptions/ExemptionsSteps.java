@@ -16,14 +16,14 @@ import io.cucumber.java.en.When;
 import java.io.IOException;
 import java.util.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CucumberContext;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
@@ -41,7 +41,7 @@ public class ExemptionsSteps {
     private ExemptionsApiService exemptionsApiService;
 
     @Autowired
-    private JsonMapper mapper;
+    private ObjectMapper mapper;
 
     @Autowired
     private ExemptionsRepository exemptionsRepository;
