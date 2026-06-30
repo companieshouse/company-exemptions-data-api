@@ -1,5 +1,9 @@
 package uk.gov.companieshouse.exemptions.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.BeforeEach;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,14 +28,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 import uk.gov.companieshouse.api.exemptions.ExemptionItem;
@@ -63,7 +66,7 @@ class ExemptionsControllerTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private JsonMapper mapper;
+    private ObjectMapper mapper;
 
     @MockitoBean
     private Logger logger;
@@ -74,6 +77,12 @@ class ExemptionsControllerTest {
     private final Gson gson = new GsonBuilder().setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
+
+    @BeforeEach
+    void setUp() {
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    }
 
     @Test
     @DisplayName("Successful upsert request")
