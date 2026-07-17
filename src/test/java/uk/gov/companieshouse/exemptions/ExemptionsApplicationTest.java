@@ -7,10 +7,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -20,6 +22,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 @Testcontainers
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Import({JacksonAutoConfiguration.class})
 class ExemptionsApplicationTest {
 	@LocalServerPort
 	int port;
@@ -40,6 +43,6 @@ class ExemptionsApplicationTest {
 		this.mockMvc.perform(get("/healthcheck"))
 				.andDo(print())
 				.andExpect(status().isOk())
-				.andExpect(content().string("{\"status\":\"UP\"}"));
+				.andExpect(content().string("{\"groups\":[\"liveness\",\"readiness\"],\"status\":\"UP\"}"));
 	}
 }
