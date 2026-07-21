@@ -1,5 +1,6 @@
 package uk.gov.companieshouse.exemptions.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,10 +24,14 @@ class ConfigTest {
     @Autowired
     private MongoCustomConversions mongoCustomConversions;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     void whenContextLoads_thenBeansCorrectlyGenerated() {
         assertThat(instantSupplier).isNotNull();
         assertThat(apiClientSupplier).isNotNull();
         assertThat(mongoCustomConversions).isNotNull();
+        assertThat(objectMapper).isNotNull();
     }
 }
