@@ -15,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = Config.class)
 class ConfigTest {
 
+    private final Config config= new Config();
+
     @Autowired
     private Supplier<Instant> instantSupplier;
 
@@ -33,5 +35,11 @@ class ConfigTest {
         assertThat(apiClientSupplier).isNotNull();
         assertThat(mongoCustomConversions).isNotNull();
         assertThat(objectMapper).isNotNull();
+    }
+
+    @Test
+    void testMongoDbObjectMapper() {
+        ObjectMapper mapper = config.mongoDbObjectMapper();
+        assertThat(mapper).isNotNull();
     }
 }
