@@ -50,6 +50,10 @@
         <sonar.password/>
         <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
 
+		<sonar.coverage.jacoco.xmlReportPaths>
+			${project.build.directory}/site/jacoco/jacoco.xml
+		</sonar.coverage.jacoco.xmlReportPaths>
+
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -278,33 +282,33 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco-maven-plugin.version}</version>
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>pre-integration-test</id>-->
-<!--						<phase>pre-integration-test</phase>-->
-<!--						<goals>-->
-<!--							<goal>prepare-agent</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							&lt;!&ndash; Sets the path to the file which contains the execution model. &ndash;&gt;-->
-<!--							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>-->
-<!--							<propertyName>failsafeArgLine</propertyName>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--					<execution>-->
-<!--						<id>post-integration-test</id>-->
-<!--						<phase>post-integration-test</phase>-->
-<!--						<goals>-->
-<!--							<goal>report</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							&lt;!&ndash; Sets the path to the file which contains the execution data. &ndash;&gt;-->
-<!--							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>-->
-<!--							&lt;!&ndash; Sets the output directory for the code coverage report. &ndash;&gt;-->
-<!--							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
+				<executions>
+					<execution>
+						<id>pre-integration-test</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution model. -->
+							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
+							<propertyName>failsafeArgLine</propertyName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>post-integration-test</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>${sonar.jacoco.reports}/jacoco-it.exec</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>${sonar.jacoco.reports}/jacoco-it</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.sonarsource.scanner.maven</groupId>
