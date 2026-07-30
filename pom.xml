@@ -290,9 +290,18 @@
 							<goal>prepare-agent</goal>
 						</goals>
 						<configuration>
-							<!-- Sets the path to the file which contains the execution model. -->
 							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
-							<propertyName>failsafeArgLine</propertyName>
+							<propertyName>surefireArgLine</propertyName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>pre-integration-test</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution model. -->
 							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
 							<propertyName>surefireArgLine</propertyName>
 						</configuration>
