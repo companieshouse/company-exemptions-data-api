@@ -293,6 +293,8 @@
 							<!-- Sets the path to the file which contains the execution model. -->
 							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
 							<propertyName>failsafeArgLine</propertyName>
+							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
+							<propertyName>surefireArgLine</propertyName>
 						</configuration>
 					</execution>
 					<execution>
