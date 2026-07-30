@@ -295,8 +295,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>pre-integration-test</id>
-						<phase>pre-integration-test</phase>
+						<id>pre-unit-test</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
