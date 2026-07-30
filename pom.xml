@@ -33,7 +33,7 @@
 		<skip.unit.tests>false</skip.unit.tests>
 
 		<!-- internal -->
-		<structured-logging.version>3.0.43</structured-logging.version>
+		<structured-logging.version>3.0.57</structured-logging.version>
 		<private-api-sdk-java.version>4.0.9</private-api-sdk-java.version>
 		<api-sdk-manager-java-library.version>3.0.25</api-sdk-manager-java-library.version>
 		<api-security-java.version>2.0.16</api-security-java.version>
@@ -51,9 +51,8 @@
         <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
 
 		<sonar.coverage.jacoco.xmlReportPaths>
-			${project.build.directory}/site/jacoco/jacoco.xml
+			${project.build.directory}/site/jacoco-it/jacoco.xml
 		</sonar.coverage.jacoco.xmlReportPaths>
-		<sonar.jacoco.reports>${project.build.directory}/site</sonar.jacoco.reports>
 
 	</properties>
 	<dependencyManagement>
