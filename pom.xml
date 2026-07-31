@@ -53,6 +53,7 @@
 		<sonar.coverage.jacoco.xmlReportPaths>
 			${project.build.directory}/site/jacoco-it/jacoco.xml
 		</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.jacoco.reports>${project.build.directory}/site</sonar.jacoco.reports>
 
 	</properties>
 	<dependencyManagement>
