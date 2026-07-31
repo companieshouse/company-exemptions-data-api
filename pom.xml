@@ -51,7 +51,8 @@
         <sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
 
 		<sonar.coverage.jacoco.xmlReportPaths>
-			${project.build.directory}/site/jacoco-it/jacoco.xml
+			${project.build.directory}/target/site/jacoco/jacoco.xml,
+			${project.build.directory}/target/site/jacoco-it/jacoco.xml
 		</sonar.coverage.jacoco.xmlReportPaths>
 		<sonar.jacoco.reports>${project.build.directory}/site</sonar.jacoco.reports>
 
