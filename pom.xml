@@ -293,7 +293,7 @@
 						</goals>
 						<configuration>
 							<destFile>${sonar.jacoco.reports}/jacoco-it.exec</destFile>
-							<propertyName>surefireArgLine</propertyName>
+							<propertyName>failsafeArgLine</propertyName>
 						</configuration>
 					</execution>
 					<execution>
