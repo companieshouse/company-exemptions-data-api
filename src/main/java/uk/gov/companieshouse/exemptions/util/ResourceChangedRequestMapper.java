@@ -5,8 +5,8 @@ import static uk.gov.companieshouse.exemptions.ExemptionsApplication.APPLICATION
 import java.time.Instant;
 import java.util.function.Supplier;
 import org.springframework.stereotype.Component;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.exemptions.exception.SerDesException;
@@ -42,7 +42,7 @@ public class ResourceChangedRequestMapper {
             changedResource.setDeletedData(data);
 
             return changedResource;
-        } catch (JacksonException ex) {
+        } catch (JsonProcessingException ex) {
             final String msg = "Failed to serialise/deserialise deleted data";
             LOGGER.error(msg, DataMapHolder.getLogMap());
             throw new SerDesException(msg, ex);

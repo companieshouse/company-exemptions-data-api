@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 
 class ExemptionsWriteConverterTest {
 
-    private final ExemptionsWriteConverter converter = new ExemptionsWriteConverter(new JsonMapper());
+    private final ExemptionsWriteConverter converter = new ExemptionsWriteConverter(new ObjectMapper());
 
     @Test
     void convertExemptionsToBasicDBObject() {
