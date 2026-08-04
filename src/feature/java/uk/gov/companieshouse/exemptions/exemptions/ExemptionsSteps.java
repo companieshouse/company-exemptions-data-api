@@ -23,7 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.exemptions.CucumberContext;
 import uk.gov.companieshouse.exemptions.exception.ServiceUnavailableException;
@@ -41,7 +41,7 @@ public class ExemptionsSteps {
     private ExemptionsApiService exemptionsApiService;
 
     @Autowired
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @Autowired
     private ExemptionsRepository exemptionsRepository;

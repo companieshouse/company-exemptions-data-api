@@ -1,9 +1,5 @@
 package uk.gov.companieshouse.exemptions.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.BeforeEach;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions.KindEnum;
 import uk.gov.companieshouse.api.exemptions.ExemptionItem;
@@ -65,7 +62,8 @@ class ExemptionsControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private JsonMapper mapper;
 
     @MockitoBean
     private Logger logger;
@@ -76,12 +74,6 @@ class ExemptionsControllerTest {
     private final Gson gson = new GsonBuilder().setPrettyPrinting()
             .excludeFieldsWithoutExposeAnnotation()
             .create();
-
-    @BeforeEach
-    void setUp() {
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
 
     @Test
     @DisplayName("Successful upsert request")
