@@ -8,8 +8,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -17,14 +15,16 @@ import java.util.Collections;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.companieshouse.api.chskafka.ChangedResource;
 import uk.gov.companieshouse.api.chskafka.ChangedResourceEvent;
 import uk.gov.companieshouse.api.exemptions.CompanyExemptions;
@@ -73,7 +73,7 @@ class ResourceChangedRequestMapperTest {
 
     @ParameterizedTest
     @MethodSource("resourceChangedScenarios")
-    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) throws JsonProcessingException {
+    void shouldMapDeletedEvent(ResourceChangedTestArgument argument) {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
@@ -89,30 +89,42 @@ class ResourceChangedRequestMapperTest {
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJsonProcessingExceptionCaughtDuringSerialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringSerialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
-        when(objectMapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+        when(objectMapper.writeValueAsString(any())).thenThrow(JacksonException.class);
 
-        final Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
+
+        // when
 
         // then
-        assertThrows(SerDesException.class, ex);
+        assertThrows(
+                SerDesException.class,
+                () -> mapper.mapDeletedEvent(request));
     }
 
     @Test
-    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringDeserialisation() throws Exception {
+    void shouldThrowSerDesExceptionWhenJacksonExceptionCaughtDuringDeserialisation() {
         // given
         when(instantSupplier.get()).thenReturn(UPDATED_AT);
         when(objectMapper.writeValueAsString(any())).thenReturn("Data as string");
-        when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
+        when(objectMapper.readValue(anyString(), eq(Object.class))).thenThrow(JacksonException.class);
 
-        final Executable ex = () -> mapper.mapDeletedEvent(
-                new ResourceChangedRequest("12345678", getCompanyExemptionsDocument(), true));
+        final var request = new ResourceChangedRequest(
+                "12345678",
+                getCompanyExemptionsDocument(),
+                true);
+
+        // when
 
         // then
-        assertThrows(SerDesException.class, ex);
+        assertThrows(
+                SerDesException.class,
+                () -> mapper.mapDeletedEvent(request));
     }
 
     static Stream<ResourceChangedTestArgument> resourceChangedScenarios() {
@@ -144,7 +156,7 @@ class ResourceChangedRequestMapperTest {
         }
 
         @Override
-        public String toString() {
+        public @NonNull String toString() {
             return this.request.toString();
         }
     }

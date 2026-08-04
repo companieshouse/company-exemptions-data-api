@@ -3,20 +3,19 @@ package uk.gov.companieshouse.exemptions.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.companieshouse.exemptions.exception.BadRequestException;
 
 class LocalDateDeSerializerTest {
 
     private final LocalDateDeSerializer deserializer = new LocalDateDeSerializer();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final JsonMapper mapper = new JsonMapper();
 
     @Test
-    void dateShouldDeserialize() throws IOException {
+    void dateShouldDeserialize() {
         // given
         final var jsonTestString = "{\"date\":{\"$date\": \"2023-01-09T00:00:00Z\"}}";
 
@@ -29,7 +28,7 @@ class LocalDateDeSerializerTest {
     }
 
     @Test
-    void longStringReturnsLong() throws IOException {
+    void longStringReturnsLong() {
         // given
         final var jsonTestString = "{\"date\":{\"$date\": {\"$numberLong\":\"-1431388800000\"}}}";
 
@@ -44,12 +43,9 @@ class LocalDateDeSerializerTest {
     void nullStringThrowsIllegalArgumentException() {
         // given
 
+        // when/ then
+        assertThrows(IllegalArgumentException.class, () -> deserialize(null));
 
-        final Executable actual = () -> deserialize(null);
-
-
-        // then
-        assertThrows(NullPointerException.class, actual);
     }
 
     @Test
@@ -62,13 +58,17 @@ class LocalDateDeSerializerTest {
                 () -> deserialize(jsonTestString));
     }
 
-    private LocalDate deserialize(String jsonString) throws IOException {
-        final var parser = mapper.getFactory().createParser(jsonString);
-        final var deserializationContext = mapper.getDeserializationContext();
+    private LocalDate deserialize(String jsonString) {
+        final var parser = mapper.createParser(jsonString);
+        DeserializationContext deserializationContext = null;
 
-        parser.nextToken();
-        parser.nextToken();
-        parser.nextToken();
+        try {
+            parser.nextToken();
+            parser.nextToken();
+            parser.nextToken();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         return deserializer.deserialize(parser, deserializationContext);
     }
