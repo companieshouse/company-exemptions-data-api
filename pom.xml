@@ -45,7 +45,7 @@
 		<sonar.projectName>company-exemptions-data-api</sonar.projectName>
 
 		<kotlin-stdlin-override.version>2.3.21</kotlin-stdlin-override.version>
-		<tomcat-core-override.version>10.1.55</tomcat-core-override.version>
+		<tomcat-core-override.version>10.1.59</tomcat-core-override.version>
 
 		<ch-bom.version>0.1.8</ch-bom.version>
 		<jackson-annotations.version>2.22</jackson-annotations.version>
