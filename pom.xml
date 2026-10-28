@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>uk.gov.companieshouse</groupId>
 		<artifactId>companies-house-parent</artifactId>
-		<version>2.1.14</version>
+		<version>3.0.0</version>
 		<relativePath/>
 	</parent>
 	<artifactId>company-exemptions-data-api</artifactId>
@@ -40,8 +40,6 @@
 		<sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
 		<sonar.java.binaries>${project.basedir}/target,${project.basedir}/target/*</sonar.java.binaries>
 		<sonar.token>${CODE_ANALYSIS_TOKEN}</sonar.token>
-		<sonar.login></sonar.login>
-		<sonar.password></sonar.password>
 		<sonar.projectKey>uk.gov.companieshouse:company-exemptions-data-api</sonar.projectKey>
 		<sonar.projectName>company-exemptions-data-api</sonar.projectName>
 
