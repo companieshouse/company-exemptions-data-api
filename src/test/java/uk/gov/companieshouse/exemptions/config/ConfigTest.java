@@ -82,7 +82,7 @@ class ConfigTest {
 
         final var item = (BasicDBObject) ((List<?>) ((BasicDBObject) ((BasicDBObject) written.get("exemptions"))
                 .get("psc_exempt_as_shares_admitted_on_market")).get("items")).getFirst();
-        assertThat(item.get("exempt_from")).isEqualTo(Date.from(Instant.parse("2017-12-19T00:00:00Z")));
+        assertThat(item).containsEntry("exempt_from", Date.from(Instant.parse("2017-12-19T00:00:00Z")));
     }
 
     private DefaultConversionService conversionService() {
