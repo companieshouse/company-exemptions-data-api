@@ -18,10 +18,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class MongoExemptionsConfig extends AbstractMongoClientConfiguration {
 
-    @Value("${spring.data.mongodb.name}")
+    @Value("${spring.mongodb.database}")
     private String databaseName;
 
-    @Value("${spring.data.mongodb.uri}")
+    @Value("${spring.mongodb.uri}")
     private String databaseUri;
 
     @Bean

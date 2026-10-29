@@ -1,6 +1,7 @@
 package uk.gov.companieshouse.exemptions;
 
 import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.annotation.DirtiesContext;
@@ -11,6 +12,7 @@ import uk.gov.companieshouse.exemptions.service.ExemptionsApiService;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @CucumberContextConfiguration
 @AutoConfigureMockMvc
+@AutoConfigureTestRestTemplate
 @DirtiesContext
 @ActiveProfiles({"test"})
 public class Configuration extends MongoConfig {
